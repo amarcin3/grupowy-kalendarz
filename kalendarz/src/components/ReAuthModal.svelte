@@ -84,7 +84,7 @@
 
     async function deleteAccount(){
         loading = true;
-        const docRef = doc(db, "users", auth.currentUser.uid);
+        const docRef = doc(db, "Users", auth.currentUser.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
@@ -125,7 +125,7 @@
                     });
                 });
             }
-            deleteObject(ref(storage, 'users/' + auth.currentUser.uid + '/profile.png')).catch((error) => {
+            deleteObject(ref(storage, 'Users/' + auth.currentUser.uid + '/profile.png')).catch((error) => {
                 console.log(error.code);
             });
             deleteDoc(docRef).catch((error) => {

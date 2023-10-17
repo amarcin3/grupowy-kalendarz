@@ -131,7 +131,7 @@
             user.firstName = data.firstName
             user.lastName = data.lastName;
         } else {
-            const docRef = doc(db, "users", auth.currentUser.uid);
+            const docRef = doc(db, "Users", auth.currentUser.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
@@ -145,7 +145,7 @@
     function downloadProfilePicture() {
         getImage(null, "profilePictureUrl", function(img) {
             if (img.status === "No url provided") {
-                const userProfileRef = ref(storage, "users/" + auth.currentUser.uid + "/profile.png");
+                const userProfileRef = ref(storage, "Users/" + auth.currentUser.uid + "/profile.png");
                 getDownloadURL(ref(storage, userProfileRef)).then((url) => {
                     getImage(url, "profilePictureUrl", function(img) {
                         imgUrl = img.img;

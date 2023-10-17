@@ -40,7 +40,7 @@
         loading = true;
         createUserWithEmailAndPassword(auth, email, password)
             .then(async (userCredential) => {
-                await setDoc(doc(db, "users", userCredential.user.uid), {
+                await setDoc(doc(db, "Users", userCredential.user.uid), {
                     email: email,
                     firstName: firstName,
                     lastName: lastName,
