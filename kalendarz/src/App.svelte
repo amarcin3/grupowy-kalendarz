@@ -4,8 +4,10 @@
   import {firebaseConfig} from "./lib/firebaseConfig.js";
   import {getAuth, onAuthStateChanged} from "firebase/auth";
   import {getFirestore} from "firebase/firestore";
-  import NavBar from "./components/NavBar.svelte";
+  import NavBar from "./components/PasekNawigacji.svelte";
   import {getStorage} from "firebase/storage";
+
+  import {writable} from "svelte/store";
 
   let page; // For page routing
   let currentRoute = "/";
@@ -16,15 +18,14 @@
   let showNavBarUserInfo = false;
 
   // Pages that require being logged in
-  const protectedRoutes = ["/konto"];
+  const protectedRoutes = ["/konto", "/grupy"];
   // Pages that don't allow being logged in
   const noLoginRoutes = ["/zaloguj", "/zarejestruj"];
 
   $: {
     if (protectedRoutes.includes(currentRoute) && !isLoggedIn && checkedLoggedIn) {
-      /*sessionStorage.removeItem("profilePictureUrl");
-      sessionStorage.removeItem("CompanyPictureUrl");
-      sessionStorage.removeItem("userData");*/
+      sessionStorage.removeItem("profilePictureUrl");
+      sessionStorage.removeItem("userData");
       router.redirect("/zaloguj");
     }
   }
@@ -36,10 +37,11 @@
   }
 
   const components = {
-    "/": () => import("./components/Home.svelte"),
-    "/zaloguj": () => import("./components/Login.svelte"),
-    "/zarejestruj": () => import("./components/Register.svelte"),
-    "/konto": () => import("./components/UserProfile.svelte"),
+    "/": () => import("./components/Glowna.svelte"),
+    "/zaloguj": () => import("./components/Zaloguj.svelte"),
+    "/zarejestruj": () => import("./components/Zarejestruj.svelte"),
+    "/konto": () => import("./components/ProfilUzytkownika.svelte"),
+    "/grupy": () => import("./components/Grupy.svelte"),
     "*": () => import("./components/404.svelte")
   };
 

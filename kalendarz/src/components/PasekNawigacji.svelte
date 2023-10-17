@@ -198,7 +198,7 @@
     </ul>
     <ul style="padding: 10px var(--nav-element-spacing-horizontal);">
         {#if loggedIn}
-            <li style="padding-top: 0; padding-bottom: 0;"><a href="./company" class="contrast" style="line-height: var(--line-height);">Panel Firmy</a></li>
+            <li style="padding-top: 0; padding-bottom: 0;"><a href="./grupy" class="contrast" style="line-height: var(--line-height);">Grupy</a></li>
         {/if}
         {#if showInfo && loggedIn}
             <li style="padding: 0; margin-left: var(--spacing)">
@@ -240,7 +240,7 @@
                 </strong>
             </li>
             {#if loggedIn}
-                <li style="padding-top: 0; padding-bottom: 0;"><a href="./company" class="contrast" style="line-height: var(--line-height);" on:click={() => {menuOpen = false}}>Panel Firmy</a></li>
+                <li style="padding-top: 0; padding-bottom: 0;"><a href="./grupy" class="contrast" style="line-height: var(--line-height);" on:click={() => {menuOpen = false}}>Grupy</a></li>
             {/if}
             <li>
                 <details role="list">

@@ -31,8 +31,7 @@
 
     function logout(){
         sessionStorage.removeItem("profilePictureUrl");
-        /*sessionStorage.removeItem("CompanyPictureUrl");
-        sessionStorage.removeItem("userData");*/
+        sessionStorage.removeItem("userData");
         signOut(auth).catch((error) => {
             console.log(error);
         });
@@ -119,7 +118,7 @@
                         </div>
                     {:else}
                         <img src={imgUrl} alt="" class="profile-picture" />
-                        <button class="edit-picture-button" on:click={async () => {ChangeImageModal = (await import ("./ChangeImageModal.svelte")).default; showImageModal = true}} on:cropperClose={() => {showImageModal = false}}><i class="fas fa-pen"></i></button>
+                        <button class="edit-picture-button" on:click={async () => {ChangeImageModal = (await import ("./ZmienZdjecieModal.svelte")).default; showImageModal = true}} on:cropperClose={() => {showImageModal = false}}><i class="fas fa-pen"></i></button>
                     {/if}
                     {#if showImageModal}
                         <ChangeImageModal bind:showImageModal bind:style bind:whereToSave/>
@@ -143,8 +142,8 @@
             </div>
         </div>
         <button on:click={logout}>Wyloguj</button>
-        <button on:click={async () => {ReAuthModal = (await import ("./ReAuthModal.svelte")).default; usage = "changePassword"; showReAuthModal = true}}>Zmień hasło</button>
-        <button on:click={async () => {ReAuthModal = (await import ("./ReAuthModal.svelte")).default; usage = "deleteAccount"; showReAuthModal = true}}>Usuń konto</button>
+        <button on:click={async () => {ReAuthModal = (await import ("./ReautoryzacjaModal.svelte")).default; usage = "changePassword"; showReAuthModal = true}}>Zmień hasło</button>
+        <button on:click={async () => {ReAuthModal = (await import ("./ReautoryzacjaModal.svelte")).default; usage = "deleteAccount"; showReAuthModal = true}}>Usuń konto</button>
         {#if showReAuthModal}
             <ReAuthModal bind:showReAuthModal bind:usage/>
         {/if}
