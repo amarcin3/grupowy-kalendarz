@@ -45,7 +45,7 @@
             const errorMessage = error.message;
             console.log(errorCode, errorMessage);
             if (errorCode === 'auth/wrong-password'){
-                document.getElementById('password').setAttribute('aria-invalid', 'true');
+                document.getElementById('Haslo').setAttribute('aria-invalid', 'true');
                 displayError = 'Niepoprawne hasło';
             }
             else if (errorCode === 'auth/too-many-requests'){
@@ -152,7 +152,7 @@
 
     const submitForm = (event) => {
         let email = auth.currentUser.email;
-        document.getElementById('password').removeAttribute('aria-invalid');
+        document.getElementById('Haslo').removeAttribute('aria-invalid');
         displayError = "";
         const formData = new FormData(event.target);
         reauthenticateWithEmailAndPassword(email, formData.get('password'))
@@ -242,7 +242,7 @@
                 </hgroup>
                 <p style="color: red;"> {displayError}</p>
                 <form on:submit|preventDefault={submitForm} style="margin-bottom: 0">
-                    <input id="password" { type } name="password" placeholder="Hasło" aria-label="Password" autocomplete="password" required>
+                    <input id="Haslo" { type } name="password" placeholder="Hasło" aria-label="Password" autocomplete="password" required>
                     <fieldset>
                         <div class="grid">
                             <label for="showPassword">
@@ -290,7 +290,7 @@
         align-items: center;
     }
     
-    #password, #newPassword {
+    #Haslo, #newPassword {
         transition: border 200ms;
     }
     .modal-overlay {

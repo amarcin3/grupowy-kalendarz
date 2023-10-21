@@ -27,8 +27,8 @@
     }
 
     let user = {
-        firstName: "",
-        lastName: "",
+        Imie: "",
+        Nazwisko: "",
         profilePicture: "",
     };
 
@@ -128,15 +128,15 @@
         const cachedUserData = sessionStorage.getItem("userData");
         if (cachedUserData){
             const data = JSON.parse(cachedUserData);
-            user.firstName = data.firstName
-            user.lastName = data.lastName;
+            user.Imie = data.Imie
+            user.Nazwisko = data.Nazwisko;
         } else {
             const docRef = doc(db, "Users", auth.currentUser.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                user.firstName = data.firstName
-                user.lastName = data.lastName;
+                user.Imie = data.Imie
+                user.Nazwisko = data.Nazwisko;
                 sessionStorage.setItem("userData", JSON.stringify(data));
             }
         }
@@ -205,7 +205,7 @@
                 <!--on click close menu-->
                 <a style="padding: calc(var(--form-element-spacing-vertical) * 0.3) calc(var(--form-element-spacing-horizontal) * 0.3);" href="./konto" class="contrast user">
                     <ul style="margin: 0; padding: 0">
-                        <li style="padding-top: 0; padding-bottom: 0; padding-left: 0"><span style="line-height: var(--line-height);">{user.firstName}&nbsp;{user.lastName}</span></li>
+                        <li style="padding-top: 0; padding-bottom: 0; padding-left: 0"><span style="line-height: var(--line-height);">{user.Imie}&nbsp;{user.Nazwisko}</span></li>
                         <li style="padding-top: 0; padding-bottom: 0; padding-right: 0">
                             {#if profilePictureLoading}
                                 <Spinner cssValues={cssValues} />
@@ -229,7 +229,7 @@
             {#if showInfo && loggedIn}
                 <li>
                     <a href="./konto" class="contrast user" on:click={() => {menuOpen = false}}>
-                        <span style="line-height: var(--line-height); padding-right: var(--nav-element-spacing-horizontal);"><strong>{user.firstName}&nbsp;{user.lastName}</strong></span>
+                        <span style="line-height: var(--line-height); padding-right: var(--nav-element-spacing-horizontal);"><strong>{user.Imie}&nbsp;{user.Nazwisko}</strong></span>
                         <img src={imgUrl} alt="" class="navProfilePicture"/>
                     </a>
                 </li>

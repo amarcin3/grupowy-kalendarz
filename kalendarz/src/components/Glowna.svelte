@@ -22,14 +22,14 @@
         const cachedUserData = sessionStorage.getItem("userData");
         if (cachedUserData){
             const data = JSON.parse(cachedUserData);
-            name = data.firstName + " " + data.lastName;
+            name = data.Imie + " " + data.Nazwisko;
 
         } else {
             const docRef = doc(db, "Users", auth.currentUser.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                name = data.firstName + " " + data.lastName;
+                name = data.Imie + " " + data.Nazwisko;
             }
         }
         dataLoading = false;

@@ -7,8 +7,8 @@
     document.title = "Profil użytkownika";
 
     let user = {
-        name: "",
-        email: "",
+        Nazwa: "",
+        Email: "",
         profilePicture: "",
         additionalInfo: ""
     }
@@ -43,18 +43,18 @@
         const cachedUserData = sessionStorage.getItem("userData");
         if (cachedUserData){
             const data = JSON.parse(cachedUserData);
-            user.name = data.firstName + " " + data.lastName;
-            user.email = data.email;
-            document.title = user.name + " - Profil użytkownika";
+            user.Nazwa = data.Imie + " " + data.Nazwisko;
+            user.Email = data.Email;
+            document.title = user.Nazwa + " - Profil użytkownika";
             dataLoading = false;
         } else {
             const docRef = doc(db, "Users", auth.currentUser.uid);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                user.name = data.firstName + " " + data.lastName;
-                user.email = data.email;
-                document.title = user.name + " - Profil użytkownika";
+                user.Nazwa = data.Imie + " " + data.Nazwisko;
+                user.Email = data.Email;
+                document.title = user.Nazwa + " - Profil użytkownika";
                 dataLoading = false;
             }
         }
@@ -105,7 +105,7 @@
     });
     let style = "user";
 </script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" crossorigin="anonymous" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
 
 <main class="container" style="padding-top: 0">
     <article>
@@ -131,8 +131,8 @@
                         </div>
                     {:else}
                         <div>
-                            <h1>{user.name}</h1>
-                            <p>Email: {user.email}</p>
+                            <h1>{user.Nazwa}</h1>
+                            <p>Email: {user.Email}</p>
                         </div>
                     {/if}
                 </div>

@@ -3,8 +3,15 @@
     import {quintOut} from "svelte/easing";
     import Spinner from "./Spinner.svelte";
     import {onMount} from "svelte";
+    import {collection, doc, getDoc, getFirestore, setDoc, addDoc} from "firebase/firestore";
+    import {getApp} from "firebase/app";
+    import {getAuth} from "firebase/auth";
 
     export let showJoinGroupModal;
+
+    let app = getApp();
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
     // Nienawidzę tego. Nie wiem czemu, ale bez tego nie ma animacji
     let timed = false;
@@ -25,14 +32,53 @@
     }
 
     let user = {
-        firstName: "",
-        lastName: "",
+        Imie: "",
+        Nazwisko: "",
+    }
+    async function getData(){
+        const docRef = doc(db, "Users", auth.currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            user.Imie = data.Imie;
+            user.Nazwisko = data.Nazwisko;
+        }
+    }
+
+    async function joinGroup(data) {
+        if (user.Nazwisko === "" || user.Imie === "") {
+            await getData().then(() => {
+                joinGroup(data);
+            });
+        }
+        else {
+            await addDoc(collection(db, "OczekujacePotwierdzenia"), {
+                IdUzytkownika: auth.currentUser.uid,
+                IdGrupy: data[0][1],
+                Haslo: data[1][1],
+                NazwaUzytkownika: user.Imie + " " + user.Nazwisko,
+                StanOczekiwania: "oczekuje",
+            }).then(() => {
+                loading = false;
+                done = true;
+            }).catch((error) => {
+                console.log(error.code);
+                if (error.code === "permission-denied"){
+                    displayError = "Niepoprawne dane. Upewnij się, że wprowadziłeś poprawne dane.";
+                } else {
+                    displayError = "Wystąpił błąd. Spróbuj ponownie.";
+                }
+
+                loading = false;
+            });
+        }
     }
 
     const submitForm = (event) => {
         loading = true;
         const formData = new FormData(event.target)
         const data = [...formData.entries()];
+        joinGroup(data);
     }
 
     $: if (loading) {
@@ -70,7 +116,7 @@
         <div class="modal-content" class:open={showJoinGroupModal} transition:fly="{{ y: -50, duration: 400, easing: quintOut }}">
             <hgroup>
                 <h1>Wysłano!</h1>
-                <h2>Poproś twojego pracodawcę o zaakceptowanie twojej prośby o dołączenie.</h2>
+                <h2>Poproś właściciela grupy o zaakceptowanie twojej prośby o dołączenie.</h2>
             </hgroup>
             <button on:click={() => {closeModal(true)}} class="primary">Ok</button>
         </div>
@@ -91,8 +137,8 @@
             </hgroup>
             <p style="color: red;"> {displayError}</p>
             <form id="form" on:submit|preventDefault={submitForm} style="margin-bottom: var(--spacing)">
-                <input id="id" name="id" type="text" placeholder="ID grupy" autocomplete=false required/>
-                <input id="password" name="password" {type} placeholder="Hasło" autocomplete=false required/>
+                <input id="Id" name="Id" type="text" placeholder="ID grupy" autocomplete=false required/>
+                <input id="Haslo" name="Haslo" {type} placeholder="Hasło" autocomplete=false required/>
                 <fieldset>
                     <div class="grid">
                         <label for="showPassword">
@@ -101,7 +147,7 @@
                         </label>
                     </div>
                 </fieldset>
-                <input type="submit" value="Dołącz do firmy" style="margin-bottom: 0"/>
+                <input type="submit" value="Dołącz do grupy" style="margin-bottom: 0"/>
             </form>
 
             <button on:click={closeModal} class="primary outline">Anuluj</button>
@@ -142,7 +188,7 @@
         align-items: center;
     }
 
-    #id, #password {
+    #Id, #Haslo {
         transition: border 200ms;
     }
 </style>

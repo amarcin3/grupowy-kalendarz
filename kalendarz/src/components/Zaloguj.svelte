@@ -11,11 +11,11 @@
 
     document.title = "Zaloguj się";
 
-    function remember(email, password, remember){
-        if(remember === 'on'){
+    function remember(Email, Haslo, Zapamietaj){
+        if(Zapamietaj === 'on'){
             setPersistence(auth, browserLocalPersistence)
                 .then(() => {
-                    login(email, password);
+                    login(Email, Haslo);
                 })
                 .catch((error) => {
                     const errorCode = error.code;
@@ -25,7 +25,7 @@
         } else {
             setPersistence(auth, browserSessionPersistence)
                 .then(() => {
-                    login(email, password);
+                    login(Email, Haslo);
                 })
                 .catch((error) => {
                     const errorCode = error.code;
@@ -36,23 +36,23 @@
     }
 
     let displayError = "";
-    function login(email, password){
+    function login(Email, Haslo){
         loading = true;
-        signInWithEmailAndPassword(auth, email, password)
+        signInWithEmailAndPassword(auth, Email, Haslo)
             .catch((error) => {
                 const errorCode = error.code;
                 const errorMessage = error.message;
                 console.log(errorCode, errorMessage);
                 if (errorCode === 'auth/wrong-password'){
-                    document.getElementById('password').setAttribute('aria-invalid', 'true');
+                    document.getElementById('Haslo').setAttribute('aria-invalid', 'true');
                     displayError = 'Niepoprawne hasło';
                 }
                 else if (errorCode === 'auth/user-not-found'){
-                    document.getElementById('email').setAttribute('aria-invalid', 'true');
+                    document.getElementById('Email').setAttribute('aria-invalid', 'true');
                     displayError = 'Nie ma użytkownika z takim mailem';
                 }
                 else if (errorCode === 'auth/invalid-email'){
-                    document.getElementById('email').setAttribute('aria-invalid', 'true');
+                    document.getElementById('Email').setAttribute('aria-invalid', 'true');
                     displayError = 'Niepoprawny email';
                 }
                 else if (errorCode === 'auth/too-many-requests'){
@@ -73,11 +73,11 @@
     $: type = showPassword ? 'text' : 'password'
 
     const submitForm = (event) => {
-        document.getElementById('password').removeAttribute('aria-invalid');
-        document.getElementById('email').removeAttribute('aria-invalid');
+        document.getElementById('Haslo').removeAttribute('aria-invalid');
+        document.getElementById('Email').removeAttribute('aria-invalid');
         displayError = "";
         const formData = new FormData(event.target);
-        remember(formData.get('email'), formData.get('password'),formData.get('remember'))
+        remember(formData.get('Email'), formData.get('Haslo'),formData.get('Zapamietaj'))
     }
     </script>
 
@@ -97,12 +97,12 @@
             </hgroup>
             <p style="color: red;"> {displayError}</p>
             <form on:submit|preventDefault={submitForm}>
-                <input id="email" type="email" name="email" placeholder="Email" aria-label="Login" autocomplete="email" required>
-                <input id="password" { type } name="password" placeholder="Hasło" aria-label="Password" autocomplete="password" required>
+                <input id="Email" type="email" name="Email" placeholder="Email" aria-label="Login" autocomplete="email" required>
+                <input id="Haslo" { type } name="Haslo" placeholder="Hasło" aria-label="Password" autocomplete="password" required>
                 <fieldset>
                     <div class="grid">
-                        <label for="remember">
-                            <input type="checkbox" role="switch" id="remember" name="remember">
+                        <label for="Zapamietaj">
+                            <input type="checkbox" role="switch" id="Zapamietaj" name="Zapamietaj">
                             Zapamiętaj mnie
                         </label>
                         <label for="showPassword">
@@ -116,13 +116,10 @@
         </div>
     </article>
 </main>
-
-<!--<footer class="container-fluid">
-    <small>Built with <a href="https://picocss.com" class="secondary">Pico</a> • <a href="https://github.com/picocss/examples/tree/master/sign-in/" class="secondary">Source code</a></small>
-</footer>-->
+<!--TODO: Ogarnąć zwracane błędy podczas logowania (niepoprawne dane logowania itp., zmieniły się od ostatniego czasu)-->
 </body>
 <style>
-    #email, #password {
+    #Email, #Haslo {
         transition: border 200ms;
     }
     .modal-overlay {
