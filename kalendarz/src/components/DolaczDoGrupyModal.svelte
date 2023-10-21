@@ -2,15 +2,16 @@
     import {fade, fly} from "svelte/transition";
     import {quintOut} from "svelte/easing";
     import Spinner from "./Spinner.svelte";
-    import {collection, getFirestore, addDoc, doc, getDoc, setDoc} from "firebase/firestore";
-    import {getApp} from "firebase/app";
-    import {getAuth} from "firebase/auth";
+    import {onMount} from "svelte";
 
     export let showJoinGroupModal;
 
-    let app = getApp();
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    // Nienawidzę tego. Nie wiem czemu, ale bez tego nie ma animacji
+    let timed = false;
+    onMount(() => {
+        timed = true;
+    });
+    // Koniec tego czegoś
 
     let done = false;
     let displayError = "";
@@ -27,56 +28,11 @@
         firstName: "",
         lastName: "",
     }
-    async function getData(){
-        const docRef = doc(db, "users", auth.currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            user.firstName = data.firstName
-            user.lastName = data.lastName;
-        }
-    }
-
-    async function joinCompany(data) {
-        if (user.lastName === "" || user.firstName === "") {
-            await getData().then(() => {
-                joinCompany(data);
-            });
-        }
-        else {
-            await addDoc(collection(db, "pending"), {
-                employeeId: auth.currentUser.uid,
-                companyId: data[0][1],
-                password: data[1][1],
-                employeeName: user.firstName + " " + user.lastName,
-                applicationState: "pending",
-            }).then(async () => {
-                await setDoc(doc(db, "users", auth.currentUser.uid), {
-                    companyId: data[0][1],
-                    state: "pending",
-                }, {merge: true}).then(() => {
-                    loading = false;
-                    done = true;
-                });
-            }).catch((error) => {
-                console.log(error.code);
-                if (error.code === "permission-denied"){
-                    displayError = "Niepoprawne dane. Upewnij się, że wprowadziłeś poprawne dane.";
-                } else {
-                    displayError = "Wystąpił błąd. Spróbuj ponownie.";
-                }
-
-                loading = false;
-            });
-        }
-
-    }
 
     const submitForm = (event) => {
         loading = true;
         const formData = new FormData(event.target)
         const data = [...formData.entries()];
-        //joinCompany(data);
     }
 
     $: if (loading) {
@@ -109,7 +65,7 @@
 
 </script>
 
-{#if done}
+{#if done && timed}
     <div class="modal-overlay" class:open={showJoinGroupModal} transition:fade={{duration: 200, easing: quintOut}}>
         <div class="modal-content" class:open={showJoinGroupModal} transition:fly="{{ y: -50, duration: 400, easing: quintOut }}">
             <hgroup>
@@ -119,9 +75,9 @@
             <button on:click={() => {closeModal(true)}} class="primary">Ok</button>
         </div>
     </div>
-{:else}
-    <div class="modal-overlay" class:open={showJoinGroupModal} transition:fade={{duration: 200, easing: quintOut}}>
-        <div class="modal-content" class:open={showJoinGroupModal} transition:fly="{{ y: -50, duration: 400, easing: quintOut }}">
+{:else if timed}
+    <div class="modal-overlay" transition:fade|local={{duration: 200, easing: quintOut}}>
+        <div class="modal-content" transition:fly|local="{{ y: -50, duration: 400, easing: quintOut}}">
             <div>
                 {#if loading}
                     <div class="modal-overlay middle" style="background-color: rgba(0, 0, 0, 0.7);">
@@ -130,13 +86,13 @@
                 {/if}
             </div>
             <hgroup>
-                <h1>Dołącz do firmy</h1>
-                <h2>Wpisz ID firmy oraz hasło, które otrzymałeś od pracodawcy.</h2>
+                <h1>Dołącz do grupy</h1>
+                <h2>Wpisz ID grupy oraz hasło, aby dołączyć do grupy.</h2>
             </hgroup>
             <p style="color: red;"> {displayError}</p>
             <form id="form" on:submit|preventDefault={submitForm} style="margin-bottom: var(--spacing)">
-                <input id="id" name="id" type="text" placeholder="ID firmy" autocomplete=false required/>
-                <input id="password" name="password" {type} placeholder="hasło" autocomplete=false required/>
+                <input id="id" name="id" type="text" placeholder="ID grupy" autocomplete=false required/>
+                <input id="password" name="password" {type} placeholder="Hasło" autocomplete=false required/>
                 <fieldset>
                     <div class="grid">
                         <label for="showPassword">

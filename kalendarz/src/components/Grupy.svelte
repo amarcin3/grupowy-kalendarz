@@ -15,8 +15,6 @@
     let JoinGroupModal;
     let showJoinGroupModal = false;
 
-
-
     $: if(loggedIn){
         getGrupy();
     }
@@ -29,6 +27,7 @@
             grupy.push({Id: doc.id, data: doc.data()});
         });
         grupy = grupy.sort((a, b) => a.data.Nazwa.localeCompare(b.data.Nazwa));
+        // TODO: Automatyczne odświeżanie grup po utworzeniu nowej
         dataLoading = false;
     }
 </script>
@@ -46,6 +45,7 @@
     </div>
 
     <article>
+        <!--TODO: Podział na twoje grupy i wszystkie grupy-->
          <hgroup>
              <h2>Twoje grupy</h2>
              <p>Wszystkie grupy</p>
@@ -58,9 +58,7 @@
             {:else}
                 {#each grupy as grupa}
                     <article>
-                        <p>{grupa.data.Nazwa}</p>
-                        <p>{grupa.Id}</p>
-                        <p>{grupa.data.IdWGrupie}</p>
+                        <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
                     </article>
                 {/each}
             {/if}

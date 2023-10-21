@@ -21,37 +21,30 @@
         showCreateGroupModal = false;
     }
 
- /*   async function createGroup(companyId, data) {
-        await setDoc(doc(db, "companies", companyId), {
-            companyId: companyId,
-            createdAt: serverTimestamp(),
-            name: data[0][1],
-            founderId: auth.currentUser.uid,
-            phoneNumber: data[1][1],
-            nip: data[2][1],
-            address: data[3][1],
-            password: data[4][1],
+    async function createGroup(groupId, data) {
+        await setDoc(doc(db, "Grupy", groupId), {
+            IdGrupy: groupId,
+            Utworzona: serverTimestamp(),
+            Nazwa: data[0][1],
+            IdZalozyciela: auth.currentUser.uid,
+            Haslo: data[1][1],
         }).then(async () => {
-            await setDoc(doc(db, "companies/" + companyId + "/employees", auth.currentUser.uid), {
-                employeeId: auth.currentUser.uid,
+            await setDoc(doc(db, "Users/" + auth.currentUser.uid + "/Grupy", groupId), {
+                Nazwa: data[0][1],
+                IdWGrupie: 0,
             })
-        }).then(async () => {
-            await setDoc(doc(db, "users", auth.currentUser.uid), {
-                companyId: companyId,
-                state: "founder",
-            }, {merge: true});
         }).then(() => {
             loading = false;
             closeModal(true);
         });
 
-    }*/
+    }
 
     const submitForm = (event) => {
         loading = true;
         const formData = new FormData(event.target)
         const data = [...formData.entries()];
-        //createGroup(new Date().getTime().toString(), data);
+        createGroup(new Date().getTime().toString(), data);
     }
 
     $: if (loading) {
