@@ -5,14 +5,10 @@
     import {EmailAuthProvider, getAuth, reauthenticateWithCredential, updatePassword, deleteUser} from "firebase/auth";
     import Spinner from "./Spinner.svelte";
     import {
-        collection,
         deleteDoc,
         doc,
         getDoc,
-        getDocs,
-        getFirestore,
-        query,
-        where
+        getFirestore
     } from "firebase/firestore";
     import {getStorage, ref, deleteObject} from "firebase/storage";
 
@@ -82,49 +78,14 @@
         });
     }
 
+    // FIXME: Do poprawy, usuwanie wszystkich danych, grup, próśb
     async function deleteAccount(){
         loading = true;
         const docRef = doc(db, "Users", auth.currentUser.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
-            if (data.state === "pending"){
-                const myQuery = query(collection(db, "pending"), where("employeeId", "==", auth.currentUser.uid));
-                const querySnapshot = await getDocs(myQuery);
-                querySnapshot.forEach((doc) => {
-                    deleteDoc(doc.ref)
-                });
-            }
-            if (data.state === "founder"){
-                let companyId = data.companyId;
-                console.log(companyId)
-                const docRef = doc(db, "companies", companyId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap !== undefined){
 
-                    const myQuery = query(collection(db, "companies/" + companyId + "/employees"));
-                    const querySnapshot = await getDocs(myQuery);
-
-                    await deleteObject(ref(storage, 'companies/' + companyId + '/logo.png')).catch((error) => {
-                        console.log(error.code + " while deleting company logo");
-                    });
-                    querySnapshot.forEach((doc) => {
-                        deleteDoc(doc.ref).catch((error) => {
-                            console.log(error.code + " while deleting employees");
-                        });
-                    });
-                    await deleteDoc(docRef).catch((error) => {
-                        console.log(error.code + " while deleting company");
-                    });
-                }
-                const myQuery1 = query(collection(db, "pending"), where("companyId", "==", companyId));
-                const querySnapshot1 = await getDocs(myQuery1);
-                querySnapshot1.forEach((doc) => {
-                    deleteDoc(doc.ref).catch((error) => {
-                        console.log(error.code + " while deleting pending");
-                    });
-                });
-            }
             deleteObject(ref(storage, 'Users/' + auth.currentUser.uid + '/profile.png')).catch((error) => {
                 console.log(error.code);
             });

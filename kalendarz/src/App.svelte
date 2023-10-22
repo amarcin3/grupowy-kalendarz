@@ -42,6 +42,7 @@
     "/zarejestruj": () => import("./components/Zarejestruj.svelte"),
     "/konto": () => import("./components/ProfilUzytkownika.svelte"),
     "/grupy": () => import("./components/Grupy.svelte"),
+    "/grupy/:nazwa": () => import("./components/Grupa.svelte"),
     "*": () => import("./components/404.svelte")
   };
 

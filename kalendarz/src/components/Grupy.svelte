@@ -1,5 +1,5 @@
 <script>
-    import {collection, getDocs, query} from "firebase/firestore";
+    import {addDoc, collection, doc, getDocs, query, setDoc, where} from "firebase/firestore";
     import Spinner from "./Spinner.svelte";
 
     export let loggedIn = false;
@@ -8,11 +8,13 @@
     export let storage;
 
     let dataLoading = true;
+    let pendingDataLoading = true;
 
     let podzialNaTwojeGrupy = true;
     let wszystkieGrupy = [];
     let twojeGrupy = [];
     let inneGrupy = [];
+    let oczekujaceGrupy = [];
 
     let CreateGroupModal;
     let showCreateGroupModal = false;
@@ -21,6 +23,7 @@
 
     $: if(loggedIn){
         getGrupy();
+        getOczekujacePotwierdzenia();
     }
 
     window.addEventListener('created', () => {
@@ -44,8 +47,45 @@
             wszystkieGrupy.push({Id: doc.id, data: doc.data()});
         });
         wszystkieGrupy = wszystkieGrupy.sort((a, b) => a.data.Nazwa.localeCompare(b.data.Nazwa));
+        twojeGrupy = twojeGrupy.sort((a, b) => a.data.Nazwa.localeCompare(b.data.Nazwa));
+        inneGrupy = inneGrupy.sort((a, b) => a.data.Nazwa.localeCompare(b.data.Nazwa));
         dataLoading = false;
     }
+
+    async function getOczekujacePotwierdzenia(){
+        pendingDataLoading = true;
+        let IdOczekujacychGrup = [];
+        let IdZatwierdzonychGrup = [];
+        await getDocs(query(collection(db, "OczekujacePotwierdzenia"), where("IdUzytkownika", "==", auth.currentUser.uid))).then((querySnapshot) => {
+            querySnapshot.forEach((doc) => {
+                if (doc.data().StanOczekiwania !== "zatwierdzona"){
+                    IdOczekujacychGrup.push(doc.data().IdGrupy);
+                } else {
+                    IdOczekujacychGrup.push(doc.data().IdGrupy);
+                    IdZatwierdzonychGrup.push(doc.data().IdGrupy);
+                }
+            });
+        }).then(async () => {
+            if (IdOczekujacychGrup.length === 0){
+                pendingDataLoading = false;
+                return;
+            }
+            await getDocs(query(collection(db, "Grupy"), where("IdGrupy", "in", IdOczekujacychGrup))).then((querySnapshot) => {
+                querySnapshot.forEach((docu) => {
+                    if (IdZatwierdzonychGrup.includes(docu.data().IdGrupy)){
+                        setDoc(doc(db, "Users/" + auth.currentUser.uid + "/Grupy", docu.data().IdGrupy), {
+                            IdWGrupie: 1,
+                            Nazwa: docu.data().Nazwa
+                        });
+                    } else {
+                        oczekujaceGrupy.push({Id: docu.id, data: docu.data()});
+                    }
+                });
+            });
+        });
+        pendingDataLoading = false;
+    }
+
 </script>
 <main class="container-fluid" style="padding-top: 0">
     <div class="grid">
@@ -74,9 +114,11 @@
                     <p>Nie masz własnych grup</p>
                 {:else}
                     {#each twojeGrupy as grupa}
-                        <article>
-                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                        </article>
+                        <a href="./grupy/{grupa.data.Nazwa}">
+                            <article>
+                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                            </article>
+                        </a>
                     {/each}
                 {/if}
             </div>
@@ -92,31 +134,32 @@
                     <p>Nie jesteś w żadnych innych grupach</p>
                 {:else}
                     {#each inneGrupy as grupa}
-                        <article>
-                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                        </article>
+                        <a href="./grupy/{grupa.data.Nazwa}">
+                            <article>
+                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                            </article>
+                        </a>
                     {/each}
                 {/if}
             </div>
 
-            <!--TODO: Zrobić grupy oczekujące na potwierdzenie, nie wyświetlać jeżeli nie ma takich grup, pamiętać żeby zrobić to w obu widokach (z podziałem na twoje grupy i bez)-->
-            <hgroup>
-                <h2>Grupy oczekujące na potwierdzenie</h2>
-                <p></p>
-            </hgroup>
-            <div>
-                {#if dataLoading}
-                    <Spinner/>
-                {:else if inneGrupy.length === 0}
-                    <p>Nie jesteś w żadnych innych grupach</p>
-                {:else}
-                    {#each inneGrupy as grupa}
-                        <article>
-                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                        </article>
-                    {/each}
-                {/if}
-            </div>
+            {#if oczekujaceGrupy.length > 0 || dataLoading}
+                <hgroup>
+                    <h2>Grupy oczekujące na potwierdzenie</h2>
+                    <p></p>
+                </hgroup>
+                <div>
+                    {#if pendingDataLoading}
+                        <Spinner/>
+                    {:else}
+                        {#each oczekujaceGrupy as grupa}
+                            <article>
+                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                            </article>
+                        {/each}
+                    {/if}
+                </div>
+            {/if}
          </article>
     {:else}
         <article>
@@ -132,12 +175,31 @@
                     <p>Nie jesteś w żadnej grupie</p>
                 {:else}
                     {#each wszystkieGrupy as grupa}
-                        <article>
-                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                        </article>
+                        <a href="./grupy/{grupa.data.Nazwa}">
+                            <article>
+                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                            </article>
+                        </a>
                     {/each}
                 {/if}
             </div>
+            {#if oczekujaceGrupy.length > 0 || dataLoading}
+                <hgroup>
+                    <h2>Grupy oczekujące na potwierdzenie</h2>
+                    <p></p>
+                </hgroup>
+                <div>
+                    {#if pendingDataLoading}
+                        <Spinner/>
+                    {:else}
+                        {#each oczekujaceGrupy as grupa}
+                            <article>
+                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                            </article>
+                        {/each}
+                    {/if}
+                </div>
+            {/if}
         </article>
     {/if}
     {#if showCreateGroupModal}

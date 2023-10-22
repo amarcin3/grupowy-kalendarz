@@ -184,7 +184,7 @@
 
 <nav class="container-fluid" id="nav-flat">
     <ul>
-        <li><a href="./" class="contrast"><strong>Strona główna</strong></a></li>
+        <li><a href="/" class="contrast"><strong>Strona główna</strong></a></li>
         <li>
             <details role="list">
                 <summary aria-haspopup="listbox" role="link" class="contrast">Motyw</summary>
@@ -198,12 +198,12 @@
     </ul>
     <ul style="padding: 10px var(--nav-element-spacing-horizontal);">
         {#if loggedIn}
-            <li style="padding-top: 0; padding-bottom: 0;"><a href="./grupy" class="contrast" style="line-height: var(--line-height);">Grupy</a></li>
+            <li style="padding-top: 0; padding-bottom: 0;"><a href="/grupy" class="contrast" style="line-height: var(--line-height);">Grupy</a></li>
         {/if}
         {#if showInfo && loggedIn}
             <li style="padding: 0; margin-left: var(--spacing)">
                 <!--on click close menu-->
-                <a style="padding: calc(var(--form-element-spacing-vertical) * 0.3) calc(var(--form-element-spacing-horizontal) * 0.3);" href="./konto" class="contrast user">
+                <a style="padding: calc(var(--form-element-spacing-vertical) * 0.3) calc(var(--form-element-spacing-horizontal) * 0.3);" href="/konto" class="contrast user">
                     <ul style="margin: 0; padding: 0">
                         <li style="padding-top: 0; padding-bottom: 0; padding-left: 0"><span style="line-height: var(--line-height);">{user.Imie}&nbsp;{user.Nazwisko}</span></li>
                         <li style="padding-top: 0; padding-bottom: 0; padding-right: 0">
@@ -228,7 +228,7 @@
         <ul>
             {#if showInfo && loggedIn}
                 <li>
-                    <a href="./konto" class="contrast user" on:click={() => {menuOpen = false}}>
+                    <a href="/konto" class="contrast user" on:click={() => {menuOpen = false}}>
                         <span style="line-height: var(--line-height); padding-right: var(--nav-element-spacing-horizontal);"><strong>{user.Imie}&nbsp;{user.Nazwisko}</strong></span>
                         <img src={imgUrl} alt="" class="navProfilePicture"/>
                     </a>
@@ -240,7 +240,7 @@
                 </strong>
             </li>
             {#if loggedIn}
-                <li style="padding-top: 0; padding-bottom: 0;"><a href="./grupy" class="contrast" style="line-height: var(--line-height);" on:click={() => {menuOpen = false}}>Grupy</a></li>
+                <li style="padding-top: 0; padding-bottom: 0;"><a href="/grupy" class="contrast" style="line-height: var(--line-height);" on:click={() => {menuOpen = false}}>Grupy</a></li>
             {/if}
             <li>
                 <details role="list">
@@ -258,7 +258,7 @@
 {/if}
 <nav class="container-fluid" id="nav-vertical">
     <ul>
-        <li><a href="./" class="contrast"><strong>Strona Główna</strong></a></li>
+        <li><a href="/" class="contrast"><strong>Strona Główna</strong></a></li>
     </ul>
     <ul>
         <li id="showNavButton" style="padding-top: 0; padding-bottom: 0">
