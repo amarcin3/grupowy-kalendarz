@@ -1,5 +1,5 @@
 <script>
-    import {addDoc, collection, doc, getDocs, query, setDoc, where} from "firebase/firestore";
+    import {collection, deleteDoc, doc, getDocs, query, setDoc, where} from "firebase/firestore";
     import Spinner from "./Spinner.svelte";
 
     export let loggedIn = false;
@@ -54,8 +54,10 @@
 
     async function getOczekujacePotwierdzenia(){
         pendingDataLoading = true;
+        oczekujaceGrupy = [];
         let IdOczekujacychGrup = [];
         let IdZatwierdzonychGrup = [];
+        let IdDokumentowZatwierdzonychGrup = [];
         await getDocs(query(collection(db, "OczekujacePotwierdzenia"), where("IdUzytkownika", "==", auth.currentUser.uid))).then((querySnapshot) => {
             querySnapshot.forEach((doc) => {
                 if (doc.data().StanOczekiwania !== "zatwierdzona"){
@@ -63,6 +65,7 @@
                 } else {
                     IdOczekujacychGrup.push(doc.data().IdGrupy);
                     IdZatwierdzonychGrup.push(doc.data().IdGrupy);
+                    IdDokumentowZatwierdzonychGrup.push(doc.id);
                 }
             });
         }).then(async () => {
@@ -73,10 +76,20 @@
             await getDocs(query(collection(db, "Grupy"), where("IdGrupy", "in", IdOczekujacychGrup))).then((querySnapshot) => {
                 querySnapshot.forEach((docu) => {
                     if (IdZatwierdzonychGrup.includes(docu.data().IdGrupy)){
+                        let miejsce;
+                        for (let i = 0; i < IdZatwierdzonychGrup.length; i++){
+                            if (IdZatwierdzonychGrup[i] === docu.id){
+                                miejsce = i;
+                                break;
+                            }
+                        }
                         setDoc(doc(db, "Users/" + auth.currentUser.uid + "/Grupy", docu.data().IdGrupy), {
                             IdWGrupie: 1,
                             Nazwa: docu.data().Nazwa
+                        }).then(() => {
+                            deleteDoc(doc(db, "OczekujacePotwierdzenia", IdDokumentowZatwierdzonychGrup[miejsce]));
                         });
+                        inneGrupy.push({Id: docu.id, data: docu.data()});
                     } else {
                         oczekujaceGrupy.push({Id: docu.id, data: docu.data()});
                     }
@@ -86,6 +99,7 @@
         pendingDataLoading = false;
     }
 
+    let buttonEl;
 </script>
 <main class="container-fluid" style="padding-top: 0">
     <div class="grid">
@@ -102,8 +116,26 @@
 
     {#if podzialNaTwojeGrupy}
         <article>
-            <em data-tooltip="Zmień podział na twoje grupy" data-placement="right" style="border-bottom: none; cursor: pointer" on:click={() => {podzialNaTwojeGrupy = false}}><svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32"><path d="M360-240h440v-107H360v107ZM160-613h120v-107H160v107Zm0 187h120v-107H160v107Zm0 186h120v-107H160v107Zm200-186h440v-107H360v107Zm0-187h440v-107H360v107ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Z"/></svg></em>
-             <hgroup>
+            <div class="button-container">
+                <button class="refresh-button" data-tooltip="Zmień podział na twoje grupy" data-placement="left" on:click={() => {podzialNaTwojeGrupy = false}}><svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -880 880 880" width="18" class="reload"><path d="M360-240h440v-107H360v107ZM160-613h120v-107H160v107Zm0 187h120v-107H160v107Zm0 186h120v-107H160v107Zm200-186h440v-107H360v107Zm0-187h440v-107H360v107ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Z"/></svg></button>
+                <button class="refresh-button" data-tooltip="Odśwież" data-placement="left"
+                        on:click={async () => {
+                    buttonEl.classList.add("spin");
+                    await getGrupy();
+                    await getOczekujacePotwierdzenia();
+                }}>
+                    <svg bind:this={buttonEl} class="reload" on:animationend={() => {
+                if (!pendingDataLoading)
+                    {buttonEl.classList.remove("spin");
+                } else {
+                    buttonEl.classList.remove("spin");
+                    setTimeout(() => {buttonEl.classList.add("spin");
+                    },10)
+                }
+            }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 FontIcons, Inc. --><path d="M142.9 142.9c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5c0 0 0 0 0 0H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5c7.7-21.8 20.2-42.3 37.8-59.8zM16 312v7.6 .7V440c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l41.6-41.6c87.6 86.5 228.7 86.2 315.8-1c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.2 62.2-162.7 62.5-225.3 1L185 329c6.9-6.9 8.9-17.2 5.2-26.2s-12.5-14.8-22.2-14.8H48.4h-.7H40c-13.3 0-24 10.7-24 24z"/></svg>
+                </button>
+            </div>
+            <hgroup>
                  <h2>Twoje grupy</h2>
                  <p></p>
              </hgroup>
@@ -163,7 +195,25 @@
          </article>
     {:else}
         <article>
-            <em data-tooltip="Zmień podział na twoje grupy" data-placement="right" style="border-bottom: none; cursor: pointer" on:click={() => {podzialNaTwojeGrupy = true}}><svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32"><path d="M360-240h440v-107H360v107ZM160-613h120v-107H160v107Zm0 187h120v-107H160v107Zm0 186h120v-107H160v107Zm200-186h440v-107H360v107Zm0-187h440v-107H360v107ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Z"/></svg></em>
+            <div class="button-container">
+                <button class="refresh-button" data-tooltip="Zmień podział na twoje grupy" data-placement="left" on:click={() => {podzialNaTwojeGrupy = true}}><svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -880 880 880" width="18" class="reload"><path d="M360-240h440v-107H360v107ZM160-613h120v-107H160v107Zm0 187h120v-107H160v107Zm0 186h120v-107H160v107Zm200-186h440v-107H360v107Zm0-187h440v-107H360v107ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Z"/></svg></button>
+                <button class="refresh-button" data-tooltip="Odśwież" data-placement="left"
+                        on:click={async () => {
+                    buttonEl.classList.add("spin");
+                    await getGrupy();
+                    await getOczekujacePotwierdzenia();
+                }}>
+                    <svg bind:this={buttonEl} class="reload" on:animationend={() => {
+                if (!pendingDataLoading)
+                    {buttonEl.classList.remove("spin");
+                } else {
+                    buttonEl.classList.remove("spin");
+                    setTimeout(() => {buttonEl.classList.add("spin");
+                    },10)
+                }
+            }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 FontIcons, Inc. --><path d="M142.9 142.9c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5c0 0 0 0 0 0H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5c7.7-21.8 20.2-42.3 37.8-59.8zM16 312v7.6 .7V440c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l41.6-41.6c87.6 86.5 228.7 86.2 315.8-1c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.2 62.2-162.7 62.5-225.3 1L185 329c6.9-6.9 8.9-17.2 5.2-26.2s-12.5-14.8-22.2-14.8H48.4h-.7H40c-13.3 0-24 10.7-24 24z"/></svg>
+                </button>
+            </div>
             <hgroup>
                 <h2>Wszystkie grupy</h2>
                 <p></p>
@@ -208,3 +258,32 @@
         <JoinGroupModal bind:showJoinGroupModal/>
     {/if}
 </main>
+
+<style>
+    .refresh-button {
+        height: fit-content;
+        background-color: var(--card-background-color);
+        width: fit-content;
+    }
+
+    :global(.spin) {
+        animation: spin 1s ease-out 1;
+    }
+
+    .reload {
+        height: var(--spacing);
+        color: var(--contrast);
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(540deg); }
+    }
+
+    .button-container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: calc(var(--spacing) / 2);
+    }
+</style>

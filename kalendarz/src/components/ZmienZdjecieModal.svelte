@@ -11,7 +11,6 @@
     let app = getApp();
     const storage = getStorage(app);
     export let showImageModal;
-    export let style;
     export let whereToSave;
 
     let loading = false;
@@ -34,7 +33,7 @@
             }
             cropper = new Cropper(document.getElementById('image'), {
                 initialAspectRatio: 1,
-                aspectRatio: style === "user" ? 1 : NaN,
+                aspectRatio: 1,
                 preview: '#preview',
                 viewMode: 1,
                 dragMode: 'move',
@@ -69,8 +68,7 @@
         const img = new Image();
         img.src = dataURL;
         img.onload = () => {
-            let px;
-            style === "user" ? px = 200 : px = 500;
+            let px = 200;
             const canvas = document.createElement('canvas')
             const ctx = canvas.getContext('2d')
             let width = img.width
@@ -92,7 +90,7 @@
             for (let i = 0; i < binaryString.length; i++) {
                 array[i] = binaryString.charCodeAt(i);
             }
-            const file = new File([array], style === "user" ? "profile.png" : "logo.png", {type: "image/png"});
+            const file = new File([array], "profile.png", {type: "image/png"});
             uploadFile(file);
         }
     }

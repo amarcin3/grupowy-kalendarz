@@ -40,7 +40,6 @@
         });
     }
 
-    // TODO: Do sprawdzenia czy działa
     function zatwierdzProsbe(data) {
         loading = true;
         displayError = "";

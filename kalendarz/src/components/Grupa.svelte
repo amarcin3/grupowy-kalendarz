@@ -1,5 +1,5 @@
 <script>
-    import {collection, getDocs, query, where, limit, addDoc} from "firebase/firestore";
+    import {collection, getDocs, query, where, limit} from "firebase/firestore";
     import Spinner from "./Spinner.svelte";
 
     export let loggedIn = false;
@@ -62,7 +62,6 @@
         <button class="refresh-button"
                 on:click={async () => {
                     buttonEl.classList.add("spin");
-                    console.log("refreshing")
                     await getOczekujacePotwierdzenia(grupa.Id)
                 }}>
             <svg bind:this={buttonEl} id="reload" on:animationend={() => {

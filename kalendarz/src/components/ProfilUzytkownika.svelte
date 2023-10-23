@@ -103,7 +103,6 @@
         pictureLoading = true;
         downloadProfilePicture(false);
     });
-    let style = "user";
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
 
@@ -121,7 +120,7 @@
                         <button class="edit-picture-button" on:click={async () => {ChangeImageModal = (await import ("./ZmienZdjecieModal.svelte")).default; showImageModal = true}} on:cropperClose={() => {showImageModal = false}}><i class="fas fa-pen"></i></button>
                     {/if}
                     {#if showImageModal}
-                        <ChangeImageModal bind:showImageModal bind:style bind:whereToSave/>
+                        <ChangeImageModal bind:showImageModal bind:whereToSave/>
                     {/if}
                 </div>
                 <div class="user-info">
