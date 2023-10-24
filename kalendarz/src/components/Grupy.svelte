@@ -31,6 +31,10 @@
         getGrupy();
     });
 
+    window.addEventListener('sent', () => {
+        getOczekujacePotwierdzenia();
+    });
+
     async function getGrupy(){
         const q = query(collection(db, "Users", auth.currentUser.uid, "Grupy"));
 

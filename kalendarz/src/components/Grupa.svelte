@@ -23,6 +23,10 @@
         getGrupy();
     }
 
+    window.addEventListener('refresh', () => {
+        getOczekujacePotwierdzenia(grupa.Id);
+    });
+
     async function getGrupy(){
         const q = query(collection(db, "Users", auth.currentUser.uid, "Grupy"), where("Nazwa", "==", groupName), limit(1));
         const querySnapshot = await getDocs(q);

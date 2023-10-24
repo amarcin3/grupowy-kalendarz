@@ -38,6 +38,7 @@
             }
             loading = false;
         });
+        dispatchRefresh();
     }
 
     function zatwierdzProsbe(data) {
@@ -70,6 +71,11 @@
                 loading = false;
             })
         })
+        dispatchRefresh();
+    }
+
+    function dispatchRefresh() {
+        dispatchEvent(new CustomEvent("refresh"));
     }
 
     $: if (loading) {
