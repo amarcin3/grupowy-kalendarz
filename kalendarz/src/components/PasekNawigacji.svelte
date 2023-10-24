@@ -33,6 +33,7 @@
     };
 
     let menuOpen = false;
+    let disabled = false;
 
     const themeSwitcher = {
         _scheme: "auto",
@@ -109,16 +110,20 @@
         setTimeout(() => {
             themeSwitcher.initSwitchers();
         }, 50)
+        setTimeout(() => {
+            disabled = true;
+        }, 250)
     } else {
         document.body.style.overflow = "auto";
+        setTimeout(() => {
+            disabled = false;
+        }, 250)
     }
 
     setTimeout(() => {
         themeSwitcher.init()
-        const menuBtn = document.getElementById("active");
         addEventListener("resize", () => {
             if (window.innerWidth >= 576) {
-                menuBtn.checked = false;
                 menuOpen = false;
             }
         });
@@ -222,9 +227,9 @@
 
 <!--//////////////////////////////////////////////-->
 {#if menuOpen}
-<div class="modal-overlay" on:click={() => {menuOpen = false}} transition:fade|local="{{ duration: 100, easing: cubicOut}}"></div>
+<div class="modal-overlay" on:click={() => {if(disabled) {menuOpen = false}}} transition:fade|local="{{ duration: 100, easing: cubicOut}}"></div>
 <aside>
-    <nav class="menu" id="test" transition:fly|local="{{ x: -200, duration: 400, easing: cubicOut}}">
+    <nav class="menu" transition:fly|local="{{ x: -200, duration: 400, easing: cubicOut}}">
         <ul>
             {#if showInfo && loggedIn}
                 <li>
@@ -262,7 +267,7 @@
     </ul>
     <ul>
         <li id="showNavButton" style="padding-top: 0; padding-bottom: 0">
-            <input type="checkbox" id="active" bind:checked={menuOpen}>
+            <input type="checkbox" id="active" {disabled} bind:checked={menuOpen}>
             <label for="active" class="menu-btn" style="margin: 0"><span></span></label>
         </li>
     </ul>
