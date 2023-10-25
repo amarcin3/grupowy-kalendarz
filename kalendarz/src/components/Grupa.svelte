@@ -54,6 +54,8 @@
 
     let PendingModal;
     let showPendingModal = false;
+    let AddEventModal;
+    let showAddEventModal = false;
 
     let buttonEl;
 </script>
@@ -89,6 +91,10 @@
             <p style="margin-bottom: calc(var(--spacing) * 0.5)">
                 Brak oczekujących próśb o dołączenie
             </p>
+        {/if}
+        <button on:click={async () => {AddEventModal = (await import("./DodajWydarzenieModal.svelte")).default; showAddEventModal = true}}>Dodaj wydarzenie</button>
+        {#if showAddEventModal}
+            <AddEventModal bind:showAddEventModal bind:grupa/>
         {/if}
     </div>
 </main>

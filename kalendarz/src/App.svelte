@@ -18,7 +18,7 @@
   let showNavBarUserInfo = false;
 
   // Pages that require being logged in
-  const protectedRoutes = ["/konto", "/grupy"];
+  const protectedRoutes = ["/konto", "/grupy", "/grupy/:nazwa"];
   // Pages that don't allow being logged in
   const noLoginRoutes = ["/zaloguj", "/zarejestruj"];
 
