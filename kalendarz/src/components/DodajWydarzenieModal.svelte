@@ -2,8 +2,17 @@
     import {fade, fly} from "svelte/transition";
     import {quintOut} from "svelte/easing";
     import Spinner from "./Spinner.svelte";
-    import {onMount} from "svelte";
-    import {collection, doc, getDoc, getFirestore, setDoc, addDoc} from "firebase/firestore";
+    import {
+        collection,
+        getFirestore,
+        query,
+        getDocs,
+        where,
+        getDoc,
+        doc,
+        addDoc,
+        serverTimestamp
+    } from "firebase/firestore";
     import {getApp} from "firebase/app";
     import {getAuth} from "firebase/auth";
 
@@ -16,62 +25,90 @@
 
     let displayError = "";
     let loading = false;
+    let users = [];
+    let name = "";
     function closeModal(saved = false) {
         if (saved === true) {
-            dispatchEvent(new CustomEvent("sent"));
+            dispatchEvent(new CustomEvent("eventSent"));
         }
         loading = false;
         showAddEventModal = false;
     }
 
-    let user = {
-        Imie: "",
-        Nazwisko: "",
-    }
-    /*async function getData(){
-        const docRef = doc(db, "Users", auth.currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            user.Imie = data.Imie;
-            user.Nazwisko = data.Nazwisko;
-        }
+    getUsers();
+
+    async function getUsers(){
+        let userIds = [];
+        await getDoc(doc(db, "Grupy", grupa.Id)).then((doc) => {
+            userIds.push(doc.data().IdZalozyciela);
+        }).then(async() => {
+            await getDocs(query(collection(db, "Grupy", grupa.Id, "Users"))).then((doc) => {
+                doc.forEach((doc) => {
+                    userIds.push(doc.data().IdUzytkownika);
+                });
+            }).then(async () => {
+                await getDocs(query(collection(db, "Users"), where("__name__", "in", userIds))).then((doc) => {
+                    doc.forEach((doc) => {
+                        users.push({Id: doc.id, data:doc.data()});
+                    });
+                });
+            });
+        });
+        let CU = users.filter((user) => {
+            return user.Id === auth.currentUser.uid;
+        });
+
+        name = CU[0].data.Imie + " " + CU[0].data.Nazwisko;
+
+        users = users.filter((user) => {
+            return user.Id !== auth.currentUser.uid;
+        });
+        users = users.sort((a, b) => {
+            return a.data.Nazwisko.localeCompare(b.data.Nazwisko);
+        });
     }
 
-    async function joinGroup(data) {
-        if (user.Nazwisko === "" || user.Imie === "") {
-            await getData().then(() => {
-                joinGroup(data);
-            });
-        }
-        else {
-            await addDoc(collection(db, "OczekujacePotwierdzenia"), {
-                IdUzytkownika: auth.currentUser.uid,
-                IdGrupy: data[0][1],
-                Haslo: data[1][1],
-                NazwaUzytkownika: user.Imie + " " + user.Nazwisko,
-                StanOczekiwania: "oczekuje",
-            }).then(() => {
-                loading = false;
-                done = true;
-            }).catch((error) => {
-                console.log(error.code);
-                if (error.code === "permission-denied"){
-                    displayError = "Niepoprawne dane. Upewnij się, że wprowadziłeś poprawne dane.";
-                } else {
-                    displayError = "Wystąpił błąd. Spróbuj ponownie.";
-                }
 
-                loading = false;
-            });
+    async function addEvent(data) {
+        let pUsers = [];
+        pUsers.push(auth.currentUser.uid)
+        for (let i = 5; i < data.length; i++) {
+            if (data[i][1] === "on") {
+                pUsers.push(data[i][0]);
+            }
         }
-    }*/
+        await addDoc(collection(db, "Wydarzenia"), {
+            IdGrupy: grupa.Id,
+            Tytul: data[0][1],
+            Opis: data[1][1],
+            DataS: data[2][1],
+            DataK: data[3][1],
+            Miejsce: data[4][1],
+            IdOsob: pUsers,
+            Utworzyl: name,
+            DataDodania: serverTimestamp(),
+
+        }).then(() => {
+            loading = false;
+            closeModal(true);
+        }).catch((error) => {
+            console.log(error.code);
+            if (error.code === "permission-denied"){
+                displayError = "Niepoprawne dane. Upewnij się, że wprowadziłeś poprawne dane.";
+            } else {
+                displayError = "Wystąpił błąd. Spróbuj ponownie.";
+            }
+
+            loading = false;
+        });
+    }
 
     const submitForm = (event) => {
         loading = true;
         const formData = new FormData(event.target)
         const data = [...formData.entries()];
-        //joinGroup(data);
+        console.log(data);
+        addEvent(data);
     }
 
     $: if (loading) {
@@ -127,16 +164,18 @@
                     <input type="datetime-local" id="DataK" name="DataK"/>
                 </div>
             </div>
-            <input type="text" placeholder="Miejsce"/>
+            <input type="text" name="Miejsce" placeholder="Miejsce"/>
             <details role="list">
                 <summary aria-haspopup="listbox">Osoby</summary>
                 <ul role="listbox">
-                    <li>
-                        <label>
-                            <input type="checkbox">
-                            Osoba1
-                        </label>
-                    </li>
+                    {#each users as user}
+                        <li>
+                            <label>
+                                <input type="checkbox" name="{user.Id}">
+                                {user.data.Imie} {user.data.Nazwisko}
+                            </label>
+                        </li>
+                    {/each}
                 </ul>
             </details>
             <input type="submit" value="Utwórz wydarzenie" style="margin-bottom: 0"/>
