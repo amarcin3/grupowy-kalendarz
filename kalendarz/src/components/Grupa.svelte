@@ -1,5 +1,5 @@
 <script>
-    import {collection, getDocs, query, where, limit} from "firebase/firestore";
+    import {collection, getDocs, query, where, limit, getDoc, doc} from "firebase/firestore";
     import Spinner from "./Spinner.svelte";
 
     export let loggedIn = false;
@@ -8,6 +8,7 @@
     export let storage;
 
     let dataLoading = true;
+    let eventsLoading = true;
     let pendingLoading = true;
     let daneOczekujacych = [];
     let iloscOczekujacych = 0;
@@ -68,12 +69,45 @@
     }
 
     async function getWydarzenia(){
+        eventsLoading = true;
         await getDocs(query(collection(db, "Wydarzenia"), where("IdGrupy", "==", grupa.Id))).then((querySnapshot) => {
             daneWydarzen = [];
             querySnapshot.forEach((doc) => {
                 daneWydarzen.push(doc);
             });
+        }).catch((error) => {
+            console.log(error);
         });
+        eventsLoading = false;
+    }
+
+    async function getUsers(ids){
+        let users = [];
+        await getDocs(query(collection(db, "Users"), where("__name__", "in", ids))).then((doc) => {
+            doc.forEach((doc) => {
+                users.push({Id: doc.id, data:doc.data()});
+            });
+        });
+
+        users = users.sort((a, b) => {
+            return a.data.Imie.localeCompare(b.data.Imie);
+        });
+
+        users = users.sort((a, b) => {
+            return a.data.Nazwisko.localeCompare(b.data.Nazwisko);
+        });
+
+        users = users.sort((a, b) => {
+            if (a.Id === auth.currentUser.uid){
+                return -1;
+            } else if (b.Id === auth.currentUser.uid){
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+
+        return users;
     }
 
     let PendingModal;
@@ -124,19 +158,37 @@
             <AddEventModal bind:showAddEventModal bind:grupa/>
         {/if}
 
-        {#each daneWydarzen as daneWydarzenia}
-            <article>
-                <div>
-                    <p>Nazwa: {daneWydarzenia.data().Tytul}</p>
-                    <p>Opis: {daneWydarzenia.data().Opis}</p>
-                    <p>Data początkowa: {daneWydarzenia.data().DataS}</p>
-                    <p>Data końcowa: {daneWydarzenia.data().DataK}</p>
-                    <p>Miejsce: {daneWydarzenia.data().Miejsce}</p>
-                    <p>Utworzył: {daneWydarzenia.data().Utworzyl}</p>
-                    <p>Uczestnicy: {daneWydarzenia.data().IdOsob}</p>
-                </div>
-            </article>
-        {/each}
+        {#if eventsLoading}
+            <Spinner/>
+        {:else}
+            {#each daneWydarzen as daneWydarzenia}
+                <article>
+                    <div>
+                        <p>Nazwa: {daneWydarzenia.data().Tytul}</p>
+                        <p>Opis: {daneWydarzenia.data().Opis}</p>
+                        <p>Data początkowa: {daneWydarzenia.data().DataS}</p>
+                        <p>Data końcowa: {daneWydarzenia.data().DataK}</p>
+                        <p>Miejsce: {daneWydarzenia.data().Miejsce}</p>
+                        <p>Utworzył: {daneWydarzenia.data().Utworzyl}</p>
+                        Uczestnicy:
+                        <ol>
+                            {#await getUsers(daneWydarzenia.data().IdOsob)}
+                                {#each daneWydarzenia.data().IdOsob as IdOsoby}
+                                    <li>{IdOsoby}<li>
+                                {/each}
+                            {:then users}
+                                {#each users as user}
+                                    <li>{user.data.Imie} {user.data.Nazwisko}</li>
+                                {/each}
+                            {:catch error}
+                                <p>{error.message}</p>
+                            {/await}
+                        </ol>
+                    </div>
+                </article>
+            {/each}
+        {/if}
+
     </div>
 </main>
 <style>
