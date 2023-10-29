@@ -14,6 +14,8 @@
     let iloscOczekujacych = 0;
     let daneWydarzen = [];
 
+    document.title = "Grupa";
+
     let grupa = {
         Id: "",
         data: {
@@ -46,6 +48,7 @@
         const querySnapshot = await getDocs(q);
         querySnapshot.forEach((doc) => {
             grupa = {Id: doc.id, data: doc.data()};
+            document.title = grupa.data.Nazwa + " - Grupa";
             if (grupa.data.IdWGrupie === 0){
                 getOczekujacePotwierdzenia(grupa.Id)
             }

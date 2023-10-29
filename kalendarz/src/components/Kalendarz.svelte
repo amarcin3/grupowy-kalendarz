@@ -96,9 +96,9 @@
     }
 
     .calendar {
-        border: 1px solid #ccc;
         min-width: fit-content;
         margin: auto;
+
     }
 
     .calendar-header, .calendar-month, .calendar-day {
@@ -116,7 +116,12 @@
         grid-template-columns: repeat(7, 1fr);
     }
 
+    .calendar-day:hover {
+        background-color: rgba(136, 136, 136, 0.38);
+    }
+
     .button-grid {
+        border: 1px solid #ccc;
         display: grid;
         grid-template-columns: 1fr 5fr 1fr;
     }

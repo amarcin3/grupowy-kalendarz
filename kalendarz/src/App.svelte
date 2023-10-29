@@ -7,8 +7,6 @@
   import NavBar from "./components/PasekNawigacji.svelte";
   import {getStorage} from "firebase/storage";
 
-  import {writable} from "svelte/store";
-
   let page; // For page routing
   let currentRoute = "/";
 

@@ -3,7 +3,7 @@
     import {doc, getDoc} from "firebase/firestore";
 
 
-    document.title = "Strona główna";
+    document.title = "Grupowy kalendarz";
 
     export let loggedIn = false;
     export let auth;
@@ -35,10 +35,8 @@
         dataLoading = false;
     }
 
-    $: {
-        if (loggedIn) {
+    $: if (loggedIn) {
             getData();
-        }
     }
 
 </script>
@@ -58,6 +56,7 @@
             <button on:click={() => {redirect("/zarejestruj")}}>Zarejestruj się</button>
         {:else}
             <button on:click={() => {redirect("/konto")}}>Profil użytkownika</button>
+            <button on:click={() => {redirect("/grupy")}}>Grupy</button>
         {/if}
 
     </article>
