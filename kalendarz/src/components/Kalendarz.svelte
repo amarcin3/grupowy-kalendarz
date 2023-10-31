@@ -8,12 +8,22 @@
     let poprzednieDni = [];
     let dni = [];
     let nastepneDni = [];
-    let nazwyMiesiacy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec",
-        "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+    let zaznaczoneDni = [];
+
+    let nazwyMiesiacy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
     let date = new Date();
+    date.setDate(1) // Zaraz mi się coś stanie
+    date.setMonth(date.getMonth());
     let month = date.getMonth();
     let year = date.getFullYear();
     wyswietlDni()
+
+    function Day(day, month, year, today) {
+        this.day = day;
+        this.month = month;
+        this.year = year;
+        this.today = today;
+    }
 
     function nastepnyMiesiac(){
         date.setMonth(date.getMonth() + 1);
@@ -34,7 +44,7 @@
             let lastDayOfPreviousMonth = new Date(year, month, 0).getDate();
             poprzednieDni = [];
             for (let i = firstDay.getDay() === 0 ? 7: firstDay.getDay(); i > 1; i--) {
-                poprzednieDni[i-2] = lastDayOfPreviousMonth;
+                poprzednieDni[i-2] = (new Day(lastDayOfPreviousMonth, month - 1, year, lastDayOfPreviousMonth === new Date().getDate() && month - 1 === new Date().getMonth() && year === new Date().getFullYear()));
                 lastDayOfPreviousMonth--;
             }
         } else {
@@ -43,23 +53,33 @@
 
         dni = [];
         for (let i = 1; i <= new Date(year, month + 1, 0).getDate(); i++) {
-            dni.push(i);
+            dni.push(new Day(i, month, year, i === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear()));
         }
 
         if (new Date(year, month + 1, 0).getDay() !== 0) {
             nastepneDni = [];
             for (let i = 1; i <= 7 - new Date(year, month + 1, 0).getDay(); i++) {
-                nastepneDni.push(i);
+                nastepneDni.push(new Day(i, month + 1, year, i === new Date().getDate() && month + 1 === new Date().getMonth() && year === new Date().getFullYear()));
             }
         } else {
             nastepneDni = [];
         }
 
         let daysToAdd = (6 - (Math.ceil((poprzednieDni.length + dni.length + nastepneDni.length) / 7))) * 7;
-        let startDay = (nastepneDni[nastepneDni.length - 1] ? nastepneDni[nastepneDni.length - 1] : 0) + 1;
+        let startDay = (nastepneDni[nastepneDni.length - 1] ? nastepneDni[nastepneDni.length - 1].day : 0) + 1;
         for (let i = startDay; i < daysToAdd + startDay; i++) {
-            nastepneDni.push(i);
+            nastepneDni.push(new Day(i, month + 1, year, i === new Date().getDate() && month + 1 === new Date().getMonth() && year === new Date().getFullYear()));
         }
+    }
+
+    function zmienZaznaczDzien(dzien){
+        if (zaznaczoneDni.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== zaznaczoneDni.length) {
+            zaznaczoneDni = zaznaczoneDni.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year)
+        } else {
+            zaznaczoneDni.push(dzien)
+        }
+        zaznaczoneDni = zaznaczoneDni.sort((a, b) => a.day - b.day).sort((a, b) => a.month - b.month).sort((a, b) => a.year - b.year)
+
     }
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
@@ -77,16 +97,19 @@
                 <div class="calendar-header">Sob</div>
                 <div class="calendar-header">Nie</div>
                 {#each poprzednieDni as dzien}
-                    <div class="calendar-day"><span class="last">{dzien}</span></div>
+                    <div class="calendar-day {dzien.today ? 'dzisiaj' : ''} {zaznaczoneDni.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== zaznaczoneDni.length ? 'wybrane' : ''}" on:click={() => {zmienZaznaczDzien(dzien)}}><span class="last">{dzien.day}</span></div>
                 {/each}
                 {#each dni as dzien}
-                    <div class="calendar-day">{dzien}</div>
+                    <div class="calendar-day {dzien.today ? 'dzisiaj' : ''} {zaznaczoneDni.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== zaznaczoneDni.length ? 'wybrane' : ''}" on:click={() => {zmienZaznaczDzien(dzien)}}>{dzien.day}</div>
                 {/each}
                 {#each nastepneDni as dzien}
-                    <div class="calendar-day"><span class="next">{dzien}</span></div>
+                    <div class="calendar-day {dzien.today ? 'dzisiaj' : ''} {zaznaczoneDni.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== zaznaczoneDni.length ? 'wybrane' : ''}" on:click={() => {zmienZaznaczDzien(dzien)}}><span class="next">{dzien.day}</span></div>
                 {/each}
             </div>
         </div>
+    {#each zaznaczoneDni as dzien}
+        <span>{dzien.day}.{dzien.month}.{dzien.year}</span><br>
+    {/each}
 </main>
 
 <style>
@@ -132,15 +155,8 @@
         font-weight: bold;
     }
 
-    /* Example of different styling for the weekend days */
     .calendar-header:nth-child(6), .calendar-header:nth-child(7) {
         background-color: rgba(136, 136, 136, 0.38);
-    }
-
-    /* Example of different styling for today's date */
-    .calendar-header[data-today="true"] {
-        background-color: #4caf50;
-        color: #fff;
     }
 
     .last, .next {
@@ -163,6 +179,16 @@
         color: var(--contrast);
         align-self: center;
         justify-self: center;
+    }
+
+    .dzisiaj {
+        background-color: var(--primary);
+        color: white;
+    }
+
+    .wybrane {
+        background-color: var(--secondary);
+        color: white;
     }
 
 </style>
