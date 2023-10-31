@@ -160,6 +160,7 @@
         {#if showAddEventModal}
             <AddEventModal bind:showAddEventModal bind:grupa/>
         {/if}
+        <a href="./{groupName}/kalendarz">Kalendarz</a>
 
         {#if eventsLoading}
             <Spinner/>
@@ -194,6 +195,7 @@
 
     </div>
 </main>
+<!--suppress CssUnusedSymbol -->
 <style>
 
     .refresh-button {

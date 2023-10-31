@@ -16,7 +16,7 @@
   let showNavBarUserInfo = false;
 
   // Pages that require being logged in
-  const protectedRoutes = ["/konto", "/grupy", "/grupy/:nazwa", "/kalendarz"];
+  const protectedRoutes = ["/konto", "/grupy", "/grupy/:nazwa", "/grupy/:nazwa/kalendarz"];
   // Pages that don't allow being logged in
   const noLoginRoutes = ["/zaloguj", "/zarejestruj"];
 
@@ -41,7 +41,7 @@
     "/konto": () => import("./components/ProfilUzytkownika.svelte"),
     "/grupy": () => import("./components/Grupy.svelte"),
     "/grupy/:nazwa": () => import("./components/Grupa.svelte"),
-    "/kalendarz": () => import("./components/Kalendarz.svelte"),
+    "/grupy/:nazwa/kalendarz": () => import("./components/Kalendarz.svelte"),
     "*": () => import("./components/404.svelte")
   };
 

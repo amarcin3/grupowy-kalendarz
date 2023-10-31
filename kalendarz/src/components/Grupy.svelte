@@ -263,6 +263,7 @@
     {/if}
 </main>
 
+<!--suppress CssUnusedSymbol -->
 <style>
     .refresh-button {
         height: fit-content;
