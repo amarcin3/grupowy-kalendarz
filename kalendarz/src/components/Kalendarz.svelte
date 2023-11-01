@@ -8,6 +8,10 @@
     export let loggedIn;
     export let storage;
 
+    let AddEventModal
+    let showAddEventModal = false;
+    let dateToPass;
+
     let poprzednieDni = [];
     let dni = [];
     let nastepneDni = [];
@@ -42,6 +46,10 @@
             getWydarzenia();
         });
     }
+
+    window.addEventListener('eventSent', () => {
+        getWydarzenia();
+    });
 
     async function getGrupy(){
         const q = query(collection(db, "Users", auth.currentUser.uid, "Grupy"), where("Nazwa", "==", groupName), limit(1));
@@ -143,6 +151,20 @@
         for (let i = startDay; i < daysToAdd + startDay; i++) {
             nastepneDni.push(new Day(i, month + 1, year, i === new Date().getDate() && month + 1 === new Date().getMonth() && year === new Date().getFullYear()));
         }
+
+        for (let i = 0; i < poprzednieDni.length; i++) {
+            if (poprzednieDni[i].month === -1) {
+                poprzednieDni[i].month = 11;
+                poprzednieDni[i].year--;
+            }
+        }
+        for (let i = 0; i < nastepneDni.length; i++) {
+            if (nastepneDni[i].month === 12) {
+                nastepneDni[i].month = 0;
+                nastepneDni[i].year++;
+            }
+        }
+
     }
 
     function zmienZaznaczDzien(dzien){
@@ -167,7 +189,6 @@
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
 <main class="container">
-    <!--powrót-->
     <a href="/grupy/{groupName}" class="button"><i class="fa-solid fa-arrow-left"></i> Powrót</a>
     <div class="calendar">
         <div class="button-grid">
@@ -216,9 +237,10 @@
     {#each zaznaczoneDni as dzien}
         {#if dniWydarzen.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== dniWydarzen.length}
             <div class="calendar-day zaznaczoneDniLi wydarzenie {dzien.today ? 'dzisiaj' : ''}">
-                {dzien.day}.{dzien.month+1}.{dzien.year} -
-                {daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length} wydarze{daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length === 1 ? 'nie': 'nia'}
                 <div style="width: fit-content; margin-left: auto; margin-right: auto">
+                    {dzien.day}.{dzien.month+1}.{dzien.year}
+                    <button on:click={async () => {dateToPass = new Date(dzien.year, dzien.month, dzien.day); AddEventModal = (await import("./DodajWydarzenieModal.svelte")).default; showAddEventModal = true}} class="dodajWydarzenieButton">Dodaj wydarzenie</button>
+                    {daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length} wydarze{daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length === 1 ? 'nie': 'nia'} tego dnia
                     {#each daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}) as wydarzenie}
                         <button class="pokazWydarzenieButton" data-tooltip="Zobacz szczegóły wydarzenia" data-placement="right" on:click={() => {podswietl(wydarzenie.id)}}>{wydarzenie.data().Tytul}</button>
                     {/each}
@@ -228,6 +250,9 @@
         {:else}
             <div class="calendar-day zaznaczoneDniLi wybrane {dzien.today ? 'dzisiaj' : ''}">
                 {dzien.day}.{dzien.month+1}.{dzien.year}
+                <div style="width: fit-content; margin-left: auto; margin-right: auto">
+                    <button on:click={async () => {dateToPass = new Date(dzien.year, dzien.month, dzien.day); AddEventModal = (await import("./DodajWydarzenieModal.svelte")).default; showAddEventModal = true}} class="dodajWydarzenieButton">Dodaj wydarzenie</button>
+                </div>
             </div>
         {/if}
     {/each}
@@ -264,6 +289,9 @@
             </div>
         </article>
     {/each}
+    {#if showAddEventModal}
+        <AddEventModal bind:showAddEventModal bind:grupa bind:dateToPass/>
+    {/if}
 </main>
 
 <!--suppress CssUnusedSymbol -->
@@ -295,25 +323,9 @@
         grid-template-columns: repeat(7, 1fr);
     }
 
-    @media (hover: none) {
-        .calendar-day:hover {
-            background-color: transparent;
-        }
-
-        .dzisiaj:not(.wybrane):hover {
-            background-color: var(--primary);
-        }
-
-        .dzisiaj:not(.wydarzenie):hover {
-            background-color: rgb(132, 72, 189);;
-        }
-
-        .wydarzenie:hover {
-            background-color: rgb(132, 72, 189);;
-        }
-
-        .wybrane:hover {
-            background-color: var(--secondary);
+    @media (hover: hover) {
+        .calendar-day:not(.zaznaczoneDniLi):hover {
+            background-color: rgba(136, 136, 136, 0.38);
         }
     }
 
@@ -374,10 +386,6 @@
         color: white;
     }
 
-    .calendar-day:not(.zaznaczoneDniLi):hover {
-        background-color: rgba(136, 136, 136, 0.38);
-    }
-
     /*.highlight changes background color of .wydarzenieArticle, and when highlight is removed slowly return to original background color*/
     .wydarzenieArticle:not(.highlight) {
         background-color: var(--card-background-color);
@@ -389,7 +397,9 @@
         transition: background-color 0s;
     }
 
-    .pokazWydarzenieButton {
+    .pokazWydarzenieButton, .dodajWydarzenieButton {
+        background-color: var(--contrast);
+        border: none;
         margin: 0 auto calc(var(--spacing) / 8)  auto;
         padding: calc(var(--spacing) / 8) calc(var(--spacing) / 4);
         width: 100%;

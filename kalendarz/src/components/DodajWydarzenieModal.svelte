@@ -15,9 +15,21 @@
     } from "firebase/firestore";
     import {getApp} from "firebase/app";
     import {getAuth} from "firebase/auth";
+    import {onMount} from "svelte";
 
     export let showAddEventModal;
     export let grupa;
+    export let dateToPass = new Date();
+
+    let dataS
+    onMount(() => {
+        setTimeout(() => {
+            if (document.getElementById('DataS') !== null) {
+                dataS = document.getElementById('DataS');
+                dataS.value = dateToPass.getFullYear() + "-" + (dateToPass.getMonth()+1).toString().padStart(2, '0') + "-" + dateToPass.getDate().toString().padStart(2, '0') + "T" + dateToPass.getHours().toString().padStart(2, '0') + ":" + dateToPass.getMinutes().toString().padStart(2, '0');
+            }
+        }, 10);
+    });
 
     let app = getApp();
     const auth = getAuth(app);
@@ -107,7 +119,6 @@
         loading = true;
         const formData = new FormData(event.target)
         const data = [...formData.entries()];
-        console.log(data);
         addEvent(data);
     }
 
