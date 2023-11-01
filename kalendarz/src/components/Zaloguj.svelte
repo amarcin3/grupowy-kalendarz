@@ -116,7 +116,7 @@
         </div>
     </article>
 </main>
-<!--TODO: Ogarnąć zwracane błędy podczas logowania (niepoprawne dane logowania itp., zmieniły się od ostatniego czasu)-->
+<!--Ogarnąć zwracane błędy podczas logowania (niepoprawne dane logowania itp., zmieniły się od ostatniego czasu) - Rozwiązane - https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection-->
 </body>
 <style>
     #Email, #Haslo {

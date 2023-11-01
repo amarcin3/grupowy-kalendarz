@@ -115,7 +115,7 @@
         </div>
     </article>
 </main>
-<!--TODO: Sprawdzić zwracane błędy podczas rejestracji (email już istnieje, zbyt słabe hasło itp., mogły się zmienić od ostatniego czasu)-->
+<!-- Sprawdzić zwracane błędy podczas rejestracji (email już istnieje, zbyt słabe hasło itp., mogły się zmienić od ostatniego czasu) - Rozwiązane - https://cloud.google.com/identity-platform/docs/admin/email-enumeration-protection-->
 </body>
 <style>
     #Email, #Haslo, #Imie, #Nazwisko {

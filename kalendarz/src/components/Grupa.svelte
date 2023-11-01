@@ -1,5 +1,5 @@
 <script>
-    import {collection, getDocs, query, where, limit, getDoc, doc} from "firebase/firestore";
+    import {collection, getDocs, query, where, limit} from "firebase/firestore";
     import Spinner from "./Spinner.svelte";
 
     export let loggedIn = false;
@@ -7,7 +7,6 @@
     export let db;
     export let storage;
 
-    let dataLoading = true;
     let eventsLoading = true;
     let pendingLoading = true;
     let daneOczekujacych = [];
@@ -53,7 +52,6 @@
                 getOczekujacePotwierdzenia(grupa.Id)
             }
         });
-        dataLoading = false;
     }
 
     async function getOczekujacePotwierdzenia(IdGrupy){
@@ -120,8 +118,9 @@
 
     let buttonEl;
 </script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
 <main class="container">
-    <!--TODO: Kalendarz-->
+    <a href="/grupy" class="button"><i class="fa-solid fa-arrow-left"></i> Powrót</a>
     {#if grupa}
         Nazwa: {grupa.data.Nazwa}, Id: {grupa.Id}
     {/if}

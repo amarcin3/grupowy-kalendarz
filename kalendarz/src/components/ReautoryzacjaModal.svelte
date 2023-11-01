@@ -78,7 +78,6 @@
         });
     }
 
-    // FIXME: Do poprawy, usuwanie wszystkich danych, grup, próśb
     async function deleteAccount(){
         loading = true;
         const docRef = doc(db, "Users", auth.currentUser.uid);
