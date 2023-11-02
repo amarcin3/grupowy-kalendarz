@@ -7,7 +7,7 @@
   import NavBar from "./components/PasekNawigacji.svelte";
   import {getStorage} from "firebase/storage";
 
-  let page; // For page routing
+  let page;
   let currentRoute = "/";
 
   let isLoggedIn = false;
@@ -15,9 +15,7 @@
 
   let showNavBarUserInfo = false;
 
-  // Pages that require being logged in
-  const protectedRoutes = ["/konto", "/grupy", "/grupy/:nazwa", "/grupy/:nazwa/kalendarz"];
-  // Pages that don't allow being logged in
+  const protectedRoutes = ["/konto", "/grupy", "/grupy/:nazwa"];
   const noLoginRoutes = ["/zaloguj", "/zarejestruj"];
 
   $: {
@@ -30,7 +28,7 @@
 
   $: {
     if (noLoginRoutes.includes(currentRoute) && isLoggedIn && checkedLoggedIn) {
-      router.redirect("/konto");
+      router.redirect("/grupy");
     }
   }
 
@@ -41,7 +39,6 @@
     "/konto": () => import("./components/ProfilUzytkownika.svelte"),
     "/grupy": () => import("./components/Grupy.svelte"),
     "/grupy/:nazwa": () => import("./components/Grupa.svelte"),
-    "/grupy/:nazwa/kalendarz": () => import("./components/Kalendarz.svelte"),
     "*": () => import("./components/404.svelte")
   };
 
