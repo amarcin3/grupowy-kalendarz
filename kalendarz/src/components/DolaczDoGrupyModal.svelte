@@ -24,6 +24,7 @@
     let displayError = "";
     let loading = false;
     function closeModal(saved = false) {
+        timed = false;
         if (saved === true) {
             dispatchEvent(new CustomEvent("sent"));
         }
@@ -150,7 +151,7 @@
                 <input type="submit" value="Dołącz do grupy" style="margin-bottom: 0"/>
             </form>
 
-            <button on:click={closeModal} class="primary outline">Anuluj</button>
+            <button on:click={() => {closeModal()}} class="primary outline">Anuluj</button>
         </div>
     </div>
 {/if}

@@ -11,6 +11,7 @@
         getFirestore
     } from "firebase/firestore";
     import {getStorage, ref, deleteObject} from "firebase/storage";
+    import {onMount} from "svelte";
 
 
     let app = getApp();
@@ -24,11 +25,17 @@
     let reAuthOK = false;
 
     function closeModal() {
+        timed = false;
         loading = false;
         showReAuthModal = false;
     }
     let displayError = "";
     let user = auth.currentUser;
+
+    let timed = false;
+    onMount(() => {
+        timed = true;
+    });
 
     function reauthenticateWithEmailAndPassword(email, password) {
         loading = true;
@@ -126,7 +133,7 @@
 </script>
 
 
-{#if reAuthOK}
+{#if reAuthOK && timed}
     {#if usage === 'changePassword'}
         <div class="modal-overlay" class:open={showReAuthModal} transition:fade={{duration: 200, easing: quintOut}}>
             <div class="modal-content container" class:open={showReAuthModal} transition:fly="{{ y: -50, duration: 400, easing: quintOut }}">
@@ -157,7 +164,7 @@
                 </div>
             </div>
         </div>
-    {:else if usage === 'deleteAccount'}
+    {:else if usage === 'deleteAccount' && timed}
         <div class="modal-overlay" class:open={showReAuthModal} transition:fade={{duration: 200, easing: quintOut}}>
             <div class="modal-content container" class:open={showReAuthModal} transition:fly="{{ y: -50, duration: 400, easing: quintOut }}">
                 {#if loading}
@@ -176,7 +183,7 @@
                 </div>
             </div>
         </div>
-    {:else}
+    {:else if timed}
         <div class="modal-overlay" class:open={showReAuthModal} transition:fade={{duration: 200, easing: quintOut}}>
             <div class="modal-content" class:open={showReAuthModal} transition:fly="{{ y: -50, duration: 400, easing: quintOut }}">
                 <hgroup>
@@ -187,7 +194,7 @@
             </div>
         </div>
     {/if}
-{:else}
+{:else if timed}
     <div class="modal-overlay" class:open={showReAuthModal} transition:fade={{duration: 200, easing: quintOut}}>
         <div class="modal-content container" class:open={showReAuthModal} transition:fly="{{ y: -50, duration: 400, easing: quintOut }}">
             {#if loading}
