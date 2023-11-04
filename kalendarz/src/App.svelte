@@ -6,6 +6,7 @@
   import {getFirestore} from "firebase/firestore";
   import NavBar from "./components/PasekNawigacji.svelte";
   import {getStorage} from "firebase/storage";
+  import {loadAndSetNotifications} from "./lib/notifications.js";
 
   let page;
   let currentRoute = "/";
@@ -17,6 +18,8 @@
 
   const protectedRoutes = ["/konto", "/grupy", "/grupy/:nazwa"];
   const noLoginRoutes = ["/zaloguj", "/zarejestruj"];
+
+  loadAndSetNotifications();
 
   $: {
     if (protectedRoutes.includes(currentRoute) && !isLoggedIn && checkedLoggedIn) {

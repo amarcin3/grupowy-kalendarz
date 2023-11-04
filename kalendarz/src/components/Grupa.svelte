@@ -1,7 +1,8 @@
 <script>
     import {collection, getDocs, query, where, limit, doc, deleteDoc} from "firebase/firestore";
+    import {addNotification} from "../lib/notifications.js";
     import Spinner from "./Spinner.svelte";
-    import {fade, fly} from "svelte/transition";
+    import {fade} from "svelte/transition";
     import {quintOut} from "svelte/easing";
 
     export let loggedIn = false;
@@ -234,6 +235,44 @@
         }, 3000);
     }
 
+    function dodajPrzypomnienie(id, dataS) {
+        let timeBefore = document.getElementById(id + "t").value;
+        let date = new Date(dataS);
+
+        switch (timeBefore) {
+            case "0":
+                date = new Date(date.getTime() - 60000);
+                break;
+            case "1":
+                date = new Date(date.getTime() - 900000);
+                break;
+            case "2":
+                date = new Date(date.getTime() - 3600000);
+                break;
+            case "3":
+                date = new Date(date.getTime() - 21600000);
+                break;
+            case "4":
+                date = new Date(date.getTime() - 86400000);
+                break;
+            case "5":
+                date = new Date(date.getTime() - 604800000);
+                break;
+        }
+
+        if (date < new Date()) {
+            addNotification(new Date().setSeconds(new Date().getSeconds() + 1), "Błąd", {body: "Nie można dodać przypomnienia do wydarzenia, które już się odbyło"})
+            document.getElementById(id + "b").innerHTML = "Błąd";
+
+        } else {
+            addNotification(date.getTime(), daneWydarzen.filter(item => item.id === id)[0].data().Tytul, {body: daneWydarzen.filter(item => item.id === id)[0].data().Opis});
+            document.getElementById(id + "b").innerHTML = "Dodano";
+        }
+        setTimeout(() => {
+            document.getElementById(id + "b").innerHTML = "Dodaj przypomnienie";
+        }, 3000);
+
+    }
 
 
 </script>
@@ -374,6 +413,19 @@
                         {/await}
                     </ol>
                 </div>
+                <div class="grid">
+                    <select id={daneWydarzenia.id + "t"}>
+                        <option value="x">Rozpoczęcie</option>
+                        <option value="0">1 min przed</option>
+                        <option value="1">15 min przed</option>
+                        <option value="2">1 godz przed</option>
+                        <option value="3">6 godz przed</option>
+                        <option value="4">1 dzień przed</option>
+                        <option value="5">1 tydzień przed</option>
+                    </select>
+                    <button class="button" id={daneWydarzenia.id + "b"} on:click={() => {dodajPrzypomnienie(daneWydarzenia.id, daneWydarzenia.data().DataS)}}>Dodaj przypomnienie</button>
+                </div>
+
                 <button class="button" on:click={() => {deleteEvent(daneWydarzenia.id)}}>Usuń wydarzenie</button>
             </article>
         {/each}

@@ -1,6 +1,8 @@
 <script>
     import {collection, deleteDoc, doc, getDocs, query, setDoc, where} from "firebase/firestore";
     import Spinner from "./Spinner.svelte";
+    import {fade} from "svelte/transition";
+    import {quintOut} from "svelte/easing";
 
     export let loggedIn = false;
     export let auth;
@@ -21,6 +23,12 @@
     let JoinGroupModal;
     let showJoinGroupModal = false;
 
+    if (localStorage.getItem("podzialNaTwojeGrupy") === null){
+        localStorage.setItem("podzialNaTwojeGrupy", "true");
+    } else {
+        podzialNaTwojeGrupy = localStorage.getItem("podzialNaTwojeGrupy") === "true";
+    }
+
     $: if(loggedIn){
         getGrupy();
         getOczekujacePotwierdzenia();
@@ -34,6 +42,11 @@
     window.addEventListener('sent', () => {
         getOczekujacePotwierdzenia();
     });
+
+    $: if (podzialNaTwojeGrupy)
+        localStorage.setItem("podzialNaTwojeGrupy", "true");
+    else
+        localStorage.setItem("podzialNaTwojeGrupy", "false");
 
     async function getGrupy(){
         const q = query(collection(db, "Users", auth.currentUser.uid, "Grupy"));
@@ -148,15 +161,14 @@
                     <Spinner/>
                 {:else if twojeGrupy.length === 0}
                     <p>Nie masz własnych grup</p>
-                {:else}
-                    {#each twojeGrupy as grupa}
-                        <a href="./grupy/{grupa.data.Nazwa}">
-                            <article>
-                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                            </article>
-                        </a>
-                    {/each}
                 {/if}
+                {#each twojeGrupy as grupa, x}
+                    <a href="./grupy/{grupa.data.Nazwa}">
+                        <article in:fade|local="{{duration: 1000, easing: quintOut, delay: x*200 +300}}">
+                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                        </article>
+                    </a>
+                {/each}
             </div>
 
             <hgroup>
@@ -168,15 +180,14 @@
                     <Spinner/>
                 {:else if inneGrupy.length === 0}
                     <p>Nie jesteś w żadnych innych grupach</p>
-                {:else}
-                    {#each inneGrupy as grupa}
-                        <a href="./grupy/{grupa.data.Nazwa}">
-                            <article>
-                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                            </article>
-                        </a>
-                    {/each}
                 {/if}
+                {#each inneGrupy as grupa, x}
+                    <a href="./grupy/{grupa.data.Nazwa}" in:fade|local="{{duration: 1000, easing: quintOut, delay: x*200 +300}}">
+                        <article>
+                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                        </article>
+                    </a>
+                {/each}
             </div>
 
             {#if oczekujaceGrupy.length > 0 || dataLoading}
@@ -187,13 +198,12 @@
                 <div>
                     {#if pendingDataLoading}
                         <Spinner/>
-                    {:else}
-                        {#each oczekujaceGrupy as grupa}
-                            <article>
-                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                            </article>
-                        {/each}
                     {/if}
+                    {#each oczekujaceGrupy as grupa, x}
+                        <article in:fade|local="{{duration: 1000, easing: quintOut, delay: x*200 +300}}">
+                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                        </article>
+                    {/each}
                 </div>
             {/if}
          </article>
@@ -227,15 +237,14 @@
                     <Spinner/>
                 {:else if wszystkieGrupy.length === 0}
                     <p>Nie jesteś w żadnej grupie</p>
-                {:else}
-                    {#each wszystkieGrupy as grupa}
-                        <a href="./grupy/{grupa.data.Nazwa}">
-                            <article>
-                                <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
-                            </article>
-                        </a>
-                    {/each}
                 {/if}
+                {#each wszystkieGrupy as grupa, x}
+                    <a href="./grupy/{grupa.data.Nazwa}" in:fade|local="{{duration: 1000, easing: quintOut, delay: x*200 +300}}">
+                        <article>
+                            <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
+                        </article>
+                    </a>
+                {/each}
             </div>
             {#if oczekujaceGrupy.length > 0 || dataLoading}
                 <hgroup>
@@ -246,8 +255,8 @@
                     {#if pendingDataLoading}
                         <Spinner/>
                     {:else}
-                        {#each oczekujaceGrupy as grupa}
-                            <article>
+                        {#each oczekujaceGrupy as grupa, x}
+                            <article in:fade|local="{{duration: 1000, easing: quintOut, delay: x*200 +300}}">
                                 <h2 style="margin-bottom: 0">{grupa.data.Nazwa}</h2>
                             </article>
                         {/each}
