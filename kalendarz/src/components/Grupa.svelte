@@ -22,6 +22,7 @@
     };
 
     let buttonEl;
+    let buttonEl1;
 
     let pendingLoading = true;
     let daneOczekujacych = [];
@@ -44,6 +45,7 @@
     let nastepneDni = [];
     let zaznaczoneDni = [];
     let dniWydarzen = [];
+    let upcomingEvents = [];
 
     const nazwyMiesiacy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
 
@@ -52,6 +54,18 @@
     let month = date.getMonth();
     let year = date.getFullYear();
     wyswietlDni()
+
+    $: if(showAddEventModal){
+        document.body.style.overflow = "hidden";
+    } else {
+        document.body.style.overflow = "auto";
+    }
+
+    $: if(showPendingModal){
+        document.body.style.overflow = "hidden";
+    } else {
+        document.body.style.overflow = "auto";
+    }
 
     $: if(loggedIn){
         let url = window.location.href;
@@ -106,6 +120,26 @@
                 const d = new Date(doc.data().DataS);
                 dniWydarzen.push(new Day(d.getDate(), d.getMonth(), d.getFullYear(), false));
             });
+
+            daneWydarzen = daneWydarzen.sort((a, b) => {
+                const d1 = new Date(a.data().DataS);
+                const d2 = new Date(b.data().DataS);
+                return (d1.getTime() - d2.getTime()) > 0 ? 1 : -1;
+            });
+            let today = new Date();
+            let temp = daneWydarzen.filter(item => {
+                const d = new Date(item.data().DataS);
+                return d <= today;
+            });
+
+            daneWydarzen = daneWydarzen.filter(item => {
+                const d = new Date(item.data().DataS);
+                return d >= today;
+            });
+
+            daneWydarzen = [...daneWydarzen, ...temp];
+
+            getUpcomingEvents(3);
         }).catch((error) => {
             console.log(error);
         });
@@ -216,6 +250,22 @@
 
     }
 
+    function getUpcomingEvents(howMany) {
+        upcomingEvents = daneWydarzen;
+        let today = new Date();
+
+        upcomingEvents = upcomingEvents.filter(item => {
+            const d = new Date(item.data().DataS);
+            return d >= today;
+        });
+        upcomingEvents = upcomingEvents.sort((a, b) => {
+            const d1 = new Date(a.data().DataS);
+            const d2 = new Date(b.data().DataS);
+            return (d1.getTime() - d2.getTime()) > 0 ? 1 : -1;
+        });
+        upcomingEvents = upcomingEvents.slice(0, howMany);
+    }
+
     function zmienZaznaczDzien(dzien){
         if (zaznaczoneDni.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== zaznaczoneDni.length) {
             zaznaczoneDni = zaznaczoneDni.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year)
@@ -271,26 +321,55 @@
         setTimeout(() => {
             document.getElementById(id + "b").innerHTML = "Dodaj przypomnienie";
         }, 3000);
-
     }
 
+    function formatDate(time){
+        let date = new Date(time);
+        let day = date.getDate();
+        let month = date.getMonth() + 1;
+        let year = date.getFullYear();
+        let hour = date.getHours();
+        let minutes = date.getMinutes();
+        let seconds = date.getSeconds();
+        let dayS
+        let monthS
+        let hourS
+        let minutesS
+        let secondsS
+
+        if (day < 10) dayS = '0' + day;
+        else dayS = day;
+        if (month < 10) monthS = '0' + month;
+        else monthS = month;
+
+        if (hour < 10) hourS = '0' + hour;
+        else hourS = hour;
+        if (minutes < 10) minutesS = '0' + minutes;
+        else minutesS = minutes;
+        if (seconds < 10) secondsS = '0' + seconds;
+        else secondsS = seconds;
+
+
+        return `${dayS}.${monthS}.${year} ${hourS}:${minutesS}:${secondsS}`;
+    }
 
 </script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
-<main class="container">
+<main class="container-fluid">
     <a href="/grupy" class="button"><i class="fa-solid fa-arrow-left"></i> Powrót</a>
-    {#if grupa}
-        Nazwa: {grupa.data.Nazwa}, Id: {grupa.Id}
-    {/if}
-
-    <div>
-        {#if grupa.data.IdWGrupie === 0}
-            <button class="refresh-button"
-                    on:click={async () => {
+    <div class="grid">
+        <div style="margin-top: var(--spacing)">
+            {#if grupa}
+                <h1>{grupa.data.Nazwa}</h1>
+                <h3 style="margin-bottom: 0">Id: {grupa.Id}</h3>
+            {/if}
+            {#if grupa.data.IdWGrupie === 0}
+                <button class="refresh-button calendar-day zaznaczoneDniLi" style="margin-bottom: 0"
+                        on:click={async () => {
                         buttonEl.classList.add("spin");
                         await getOczekujacePotwierdzenia(grupa.Id)
                     }}>
-                <svg bind:this={buttonEl} id="reload" on:animationend={() => {
+                    <svg bind:this={buttonEl} id="reload" on:animationend={() => {
                     if (!pendingLoading)
                         {buttonEl.classList.remove("spin");
                     } else {
@@ -299,20 +378,60 @@
                         },10)
                     }
                 }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 FontIcons, Inc. --><path d="M142.9 142.9c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5c0 0 0 0 0 0H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5c7.7-21.8 20.2-42.3 37.8-59.8zM16 312v7.6 .7V440c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l41.6-41.6c87.6 86.5 228.7 86.2 315.8-1c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.2 62.2-162.7 62.5-225.3 1L185 329c6.9-6.9 8.9-17.2 5.2-26.2s-12.5-14.8-22.2-14.8H48.4h-.7H40c-13.3 0-24 10.7-24 24z"/></svg>
-            </button>
-            {#if iloscOczekujacych > 0}
-                <button on:click={async () => {PendingModal = (await import("./OczekujacePotwierdzeniaModal.svelte")).default; showPendingModal = true}} style="margin-bottom: calc(var(--spacing) * 0.5)">
-                    Oczekujące prośby o dołączenie: {iloscOczekujacych}
                 </button>
-                {#if showPendingModal}
-                    <PendingModal bind:showPendingModal bind:daneOczekujacych/>
+                {#if iloscOczekujacych > 0}
+                    <button class="calendar-day zaznaczoneDniLi" on:click={async () => {PendingModal = (await import("./OczekujacePotwierdzeniaModal.svelte")).default; showPendingModal = true}} style="margin-bottom: calc(var(--spacing) * 0.5)">
+                        Oczekujące prośby o dołączenie: {iloscOczekujacych}
+                    </button>
+                    {#if showPendingModal}
+                        <PendingModal bind:showPendingModal bind:daneOczekujacych/>
+                    {/if}
+                {:else}
+                    <button class="calendar-day zaznaczoneDniLi">
+                        Brak oczekujących próśb o dołączenie
+                    </button>
                 {/if}
-            {:else}
-                <p style="margin-bottom: calc(var(--spacing) * 0.5)">
-                    Brak oczekujących próśb o dołączenie
-                </p>
             {/if}
-        {/if}
+
+            {#if upcomingEvents.length === 0}
+                Brak nadchodzących wydarzeń
+            {:else}
+                <h3 style="margin-bottom: 0">Nadchodzące wydarzenia:</h3>
+            {/if}
+            {#each upcomingEvents as event, x}
+                <button class="calendar-day wydarzenie zaznaczoneDniLi" style="margin-bottom: 0" on:click={() => {podswietl(event.id)}} in:fade|local="{{duration: 1000, easing: quintOut, delay: x*200 + 300}}">
+                    <div style="width: fit-content; margin-left: auto; margin-right: auto">
+                        {event.data().Tytul}
+                    </div>
+                </button>
+            {/each}
+
+            {#if zaznaczoneDni.length > 0}<h3 style="margin-bottom: 0">Wybrane dni:</h3>{/if}
+            {#each zaznaczoneDni as dzien, x}
+                {#if dniWydarzen.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== dniWydarzen.length}
+                    <div class="calendar-day zaznaczoneDniLi wydarzenie {dzien.today ? 'dzisiaj' : ''}">
+                        <div style="width: fit-content; margin-left: auto; margin-right: auto">
+                            {dzien.day}.{dzien.month+1}.{dzien.year}
+                            <button on:click={async () => {dateToPass = new Date(dzien.year, dzien.month, dzien.day); AddEventModal = (await import("./DodajWydarzenieModal.svelte")).default; showAddEventModal = true}} class="dodajWydarzenieButton">Dodaj wydarzenie</button>
+                            {daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length} wydarze{daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length === 1 ? 'nie': 'nia'} tego dnia
+                            {#each daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}) as wydarzenie}
+                                <button class="pokazWydarzenieButton" data-tooltip="Zobacz szczegóły wydarzenia" data-placement="right" on:click={() => {podswietl(wydarzenie.id)}}>{wydarzenie.data().Tytul}</button>
+                            {/each}
+                        </div>
+
+                    </div>
+                {:else}
+                    <div class="calendar-day zaznaczoneDniLi wybrane {dzien.today ? 'dzisiaj' : ''}">
+                        {dzien.day}.{dzien.month+1}.{dzien.year}
+                        <div style="width: fit-content; margin-left: auto; margin-right: auto">
+                            <button on:click={async () => {dateToPass = new Date(dzien.year, dzien.month, dzien.day); AddEventModal = (await import("./DodajWydarzenieModal.svelte")).default; showAddEventModal = true}} class="dodajWydarzenieButton">Dodaj wydarzenie</button>
+                        </div>
+                    </div>
+                {/if}
+            {/each}
+
+        </div>
+
         <div class="calendar">
             <div class="button-grid">
                 <button class="change-button" on:click={() => {poprzedniMiesiac()}}><i class="fa-solid fa-chevron-left"></i></button>
@@ -357,31 +476,24 @@
                 {/each}
             </div>
         </div>
-
-        {#if zaznaczoneDni.length > 0}<h1>Wybrane dni:</h1>{/if}
-        {#each zaznaczoneDni as dzien}
-            {#if dniWydarzen.filter(item => item.day !== dzien.day || item.month !== dzien.month || item.year !== dzien.year).length !== dniWydarzen.length}
-                <div class="calendar-day zaznaczoneDniLi wydarzenie {dzien.today ? 'dzisiaj' : ''}">
-                    <div style="width: fit-content; margin-left: auto; margin-right: auto">
-                        {dzien.day}.{dzien.month+1}.{dzien.year}
-                        <button on:click={async () => {dateToPass = new Date(dzien.year, dzien.month, dzien.day); AddEventModal = (await import("./DodajWydarzenieModal.svelte")).default; showAddEventModal = true}} class="dodajWydarzenieButton">Dodaj wydarzenie</button>
-                        {daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length} wydarze{daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}).length === 1 ? 'nie': 'nia'} tego dnia
-                        {#each daneWydarzen.filter(item => {const d = new Date(item.data().DataS); return d.getDate() === dzien.day && d.getMonth() === dzien.month && d.getFullYear() === dzien.year}) as wydarzenie}
-                            <button class="pokazWydarzenieButton" data-tooltip="Zobacz szczegóły wydarzenia" data-placement="right" on:click={() => {podswietl(wydarzenie.id)}}>{wydarzenie.data().Tytul}</button>
-                        {/each}
-                    </div>
-
-                </div>
-            {:else}
-                <div class="calendar-day zaznaczoneDniLi wybrane {dzien.today ? 'dzisiaj' : ''}">
-                    {dzien.day}.{dzien.month+1}.{dzien.year}
-                    <div style="width: fit-content; margin-left: auto; margin-right: auto">
-                        <button on:click={async () => {dateToPass = new Date(dzien.year, dzien.month, dzien.day); AddEventModal = (await import("./DodajWydarzenieModal.svelte")).default; showAddEventModal = true}} class="dodajWydarzenieButton">Dodaj wydarzenie</button>
-                    </div>
-                </div>
-            {/if}
-        {/each}
-        <br>
+    </div>
+    <br>
+    <div>
+        <button class="refresh-button-wydarzenia" data-tooltip="Odśwież" data-placement="right"
+                on:click={async () => {
+                    buttonEl1.classList.add("spin");
+                    await getWydarzenia()
+                }}>
+            <svg bind:this={buttonEl1} class="reload" on:animationend={() => {
+                if (!eventsLoading)
+                    {buttonEl1.classList.remove("spin");
+                } else {
+                    buttonEl1.classList.remove("spin");
+                    setTimeout(() => {buttonEl1.classList.add("spin");
+                    },10)
+                }
+            }} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Pro 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 FontIcons, Inc. --><path d="M142.9 142.9c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5c0 0 0 0 0 0H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1C73.2 122 55.6 150.7 44.8 181.4c-5.9 16.7 2.9 34.9 19.5 40.8s34.9-2.9 40.8-19.5c7.7-21.8 20.2-42.3 37.8-59.8zM16 312v7.6 .7V440c0 9.7 5.8 18.5 14.8 22.2s19.3 1.7 26.2-5.2l41.6-41.6c87.6 86.5 228.7 86.2 315.8-1c24.4-24.4 42.1-53.1 52.9-83.7c5.9-16.7-2.9-34.9-19.5-40.8s-34.9 2.9-40.8 19.5c-7.7 21.8-20.2 42.3-37.8 59.8c-62.2 62.2-162.7 62.5-225.3 1L185 329c6.9-6.9 8.9-17.2 5.2-26.2s-12.5-14.8-22.2-14.8H48.4h-.7H40c-13.3 0-24 10.7-24 24z"/></svg>
+        </button>
         <h1>Wszystkie wydarzenia:</h1>
         {#if eventsLoading}
             <Spinner/>
@@ -392,11 +504,17 @@
             <article id="{daneWydarzenia.id}" class="wydarzenieArticle" in:fade|local="{{duration: 1000, easing: quintOut, delay: x*200 +300}}">
                 <div>
 
-                    <p>Nazwa: {daneWydarzenia.data().Tytul}</p>
-                    <p>Opis: {daneWydarzenia.data().Opis}</p>
-                    <p>Data początkowa: {daneWydarzenia.data().DataS}</p>
-                    <p>Data końcowa: {daneWydarzenia.data().DataK}</p>
-                    <p>Miejsce: {daneWydarzenia.data().Miejsce}</p>
+                    <h3>{daneWydarzenia.data().Tytul}</h3>
+                    {#if daneWydarzenia.data().Opis}
+                        <p>Opis: {daneWydarzenia.data().Opis}</p>
+                    {/if}
+                    <p>Data początkowa: {formatDate(daneWydarzenia.data().DataS)}</p>
+                    {#if daneWydarzenia.data().DataK}
+                        <p>Data końcowa: {daneWydarzenia.data().DataK}</p>
+                    {/if}
+                    {#if daneWydarzenia.data().Miejsce}
+                        <p>Miejsce: {daneWydarzenia.data().Miejsce}</p>
+                    {/if}
                     <p>Utworzył: {daneWydarzenia.data().Utworzyl}</p>
                     Uczestnicy:
                     <ol>
@@ -462,14 +580,20 @@
     }
 
     .calendar {
+        width: 100%;
         min-width: fit-content;
-        margin: auto;
-
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: var(--spacing);
     }
 
     .calendar-header, .calendar-month, .calendar-day {
         text-align: center;
         padding: 10px;
+    }
+
+    .zaznaczoneDniLi {
+        border-radius: 10px;
     }
 
     .calendar-month {
@@ -563,4 +687,17 @@
         padding: calc(var(--spacing) / 8) calc(var(--spacing) / 4);
         width: 100%;
     }
+
+    .refresh-button-wydarzenia {
+        height: fit-content;
+        background-color: var(--card-background-color);
+        width: fit-content;
+    }
+
+    .reload {
+        height: var(--spacing);
+        color: var(--contrast);
+    }
+
+
 </style>

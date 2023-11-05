@@ -7,7 +7,6 @@
     export let loggedIn = false;
     export let auth;
     export let db;
-    export let storage;
 
     let dataLoading = true;
     let pendingDataLoading = true;
