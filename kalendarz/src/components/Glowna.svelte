@@ -8,7 +8,6 @@
     export let loggedIn = false;
     export let auth;
     export let db;
-    export let storage;
 
     let name = "";
     let dataLoading = true;
@@ -36,7 +35,7 @@
     }
 
     $: if (loggedIn) {
-            getData();
+        getData();
     }
 
 </script>

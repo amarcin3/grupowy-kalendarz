@@ -4,6 +4,7 @@
     import {getDownloadURL, ref} from "firebase/storage";
     import Spinner from "./Spinner.svelte";
     import {getImage} from "../lib/cacheUtilities.js";
+    import router from "page";
     document.title = "Profil użytkownika";
 
     let user = {
@@ -91,6 +92,11 @@
         }, cache);
     }
 
+    function redirect(path) {
+        history.pushState({}, '', window.location.href);
+        router.redirect(path);
+    }
+
     $: {
         if (loggedIn) {
             getData();
@@ -140,6 +146,7 @@
                 <p>{user.additionalInfo}</p>
             </div>
         </div>
+        <button on:click={() => {redirect("/urzadzenia")}}>Urządzenia</button>
         <button on:click={logout}>Wyloguj</button>
         <button on:click={async () => {ReAuthModal = (await import ("./ReautoryzacjaModal.svelte")).default; usage = "changePassword"; showReAuthModal = true}}>Zmień hasło</button>
         <button on:click={async () => {ReAuthModal = (await import ("./ReautoryzacjaModal.svelte")).default; usage = "deleteAccount"; showReAuthModal = true}}>Usuń konto</button>
