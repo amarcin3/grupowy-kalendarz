@@ -510,7 +510,7 @@
                     {/if}
                     <p>Data początkowa: {formatDate(daneWydarzenia.data().DataS)}</p>
                     {#if daneWydarzenia.data().DataK}
-                        <p>Data końcowa: {daneWydarzenia.data().DataK}</p>
+                        <p>Data końcowa: {formatDate(daneWydarzenia.data().DataK)}</p>
                     {/if}
                     {#if daneWydarzenia.data().Miejsce}
                         <p>Miejsce: {daneWydarzenia.data().Miejsce}</p>
